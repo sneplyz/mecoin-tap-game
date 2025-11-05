@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MeCoin Retrieval</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+      background: #000000;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: white;
+    }
+
+    .container {
+      text-align: center;
+      max-width: 400px;
+      width: 100%;
+    }
+
+    .score {
+      font-size: 48px;
+      font-weight: bold;
+      margin-bottom: 30px;
+      text-shadow: 0 0 10px rgba(255,215,0,0.5);
+      color: #FFD700;
+    }
+
+    .coin-button {
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, #FFD700, #D4AF37, #B8860B);
+      border: 4px solid #FFD700;
+      cursor: pointer;
+      font-size: 20px;
+      font-weight: bold;
+      color: #8B7500;
+      box-shadow:
+        0 0 30px rgba(255,215,0,0.5),
+        inset 0 0 20px rgba(255,255,255,0.3);
+      transition: all 0.1s ease;
+      margin-bottom: 30px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .coin-button:before {
+      content: '';
+      position: absolute;
+      top: 10%;
+      left: 10%;
+      right: 10%;
+      bottom: 10%;
+      background: radial-gradient(ellipse at center, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 70%);
+      border-radius: 50%;
+    }
+
+    .coin-button:after {
+      content: '₿';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 60px;
+      color: #8B7500;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .coin-button:active {
+      transform: scale(0.95) rotate(5deg);
+      box-shadow:
+        0 0 15px rgba(255,215,0,0.3),
+        inset 0 0 10px rgba(255,255,255,0.2);
+    }
+
+    .stats {
+      background: rgba(255,255,255,0.1);
+      padding: 20px;
+      border-radius: 15px;
+      backdrop-filter: blur(10px);
+      margin-top: 20px;
+      border: 1px solid rgba(255,215,0,0.3);
+    }
+
+    .stats p {
+      margin: 10px 0;
+      font-size: 18px;
+      color: #FFD700;
+    }
+
+    h1 {
+      margin-bottom: 30px;
+      text-shadow: 0 0 10px rgba(255,215,0,0.5);
+      color: #FFD700;
+      font-size: 28px;
+    }
+
+    .reset-button {
+      background: linear-gradient(145deg, #FFD700, #D4AF37);
+      border: none;
+      color: #000;
+      padding: 12px 24px;
+      border-radius: 25px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: bold;
+      margin-top: 15px;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(255,215,0,0.3);
+    }
+
+    .reset-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(255,215,0,0.4);
+    }
+
+    .stats span {
+      color: white;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>MeCoin Retrieval</h1>
+
+  <div class="score" id="score">0</div>
+
+  <button class="coin-button" id="tapButton">
+    <!-- Текст скрыт, используется псевдоэлемент -->
+  </button>
+
+  <div class="stats">
+    <p>Всего кликов: <span id="totalClicks">0</span></p>
+    <p>Кликов в секунду: <span id="clicksPerSecond">0</span></p>
+    <p>Рекорд: <span id="record">0</span></p>
+    <button class="reset-button" id="resetButton">Сбросить счет</button>
+  </div>
+</div>
+
+<script>
+  // Инициализация Telegram Web App
+  const tg = window.Telegram.WebApp;
+  tg.expand();
+  tg.ready();
+
+  // Переменные игры
+  let score = 0;
+  let totalClicks = 0;
+  let clicksInSecond = 0;
+  let record = localStorage.getItem('tapRecord') || 0;
+
+  // Элементы DOM
+  const scoreElement = document.getElementById('score');
+  const tapButton = document.getElementById('tapButton');
+  const totalClicksElement = document.getElementById('totalClicks');
+  const clicksPerSecondElement = document.getElementById('clicksPerSecond');
+  const recordElement = document.getElementById('record');
+  const resetButton = document.getElementById('resetButton');
+
+  // Обновление рекорда
+  recordElement.textContent = record;
+
+  // Функция обработки клика
+  function handleClick() {
+    score++;
+    totalClicks++;
+    clicksInSecond++;
+
+    // Обновляем отображение
+    scoreElement.textContent = score;
+    totalClicksElement.textContent = totalClicks;
+
+    // Обновляем рекорд
+    if (score > record) {
+      record = score;
+      recordElement.textContent = record;
+      localStorage.setItem('tapRecord', record);
+    }
+
+    // Анимация монеты
+    tapButton.style.transform = 'scale(0.95) rotate(5deg)';
+    setTimeout(() => {
+      tapButton.style.transform = 'scale(1) rotate(0deg)';
+    }, 100);
+  }
+
+  // Функция сброса счета
+  function resetScore() {
+    score = 0;
+    scoreElement.textContent = score;
+  }
+
+  // Сброс счетчика кликов в секунду каждую секунду
+  setInterval(() => {
+    clicksPerSecondElement.textContent = clicksInSecond;
+    clicksInSecond = 0;
+  }, 1000);
+
+  // Обработчики событий
+  tapButton.addEventListener('click', handleClick);
+  resetButton.addEventListener('click', resetScore);
+
+  // Поддержка тапов на мобильных
+  tapButton.addEventListener('touchstart', function(e) {
+    e.preventDefault();
+    handleClick();
+  });
+
+  // Вибрация при клике (если поддерживается)
+  tapButton.addEventListener('click', function() {
+    if (navigator.vibrate) {
+      navigator.vibrate(10);
+    }
+  });
+
+  // Предотвращение двойного тапа на мобильных
+  tapButton.addEventListener('touchend', function(e) {
+    e.preventDefault();
+  });
+</script>
+</body>
+</html>

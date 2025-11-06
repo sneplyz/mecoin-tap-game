@@ -5,8 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MeCoin Retrieval</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
   <style>
-    /* Существующие стили остаются без изменений */
+    /* Все предыдущие стили остаются без изменений */
     body {
       margin: 0;
       padding: 20px;
@@ -189,7 +192,21 @@
       box-shadow: 0 4px 15px rgba(33,150,243,0.3);
     }
 
-    .shop-button:hover, .roulette-button:hover, .chart-button:hover {
+    .referral-button {
+      background: linear-gradient(145deg, #FF9800, #F57C00);
+      border: none;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 25px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: bold;
+      margin: 10px;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(255,152,0,0.3);
+    }
+
+    .shop-button:hover, .roulette-button:hover, .chart-button:hover, .referral-button:hover {
       transform: translateY(-2px);
       box-shadow: 0 6px 20px rgba(0,0,0,0.4);
     }
@@ -456,10 +473,109 @@
       z-index: 1000;
       display: none;
     }
+
+    /* Новые стили для онлайн графика */
+    .online-status {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+    }
+
+    .online-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #4CAF50;
+      animation: pulse 2s infinite;
+    }
+
+    .online-dot.offline {
+      background: #f44336;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.5; }
+      100% { opacity: 1; }
+    }
+
+    .global-stats {
+      background: rgba(255,255,255,0.05);
+      padding: 10px;
+      border-radius: 10px;
+      margin: 10px 0;
+      font-size: 12px;
+    }
+
+    /* Новые стили для рефералов и создания монет */
+    .referral-link {
+      background: rgba(255,255,255,0.1);
+      padding: 10px;
+      border-radius: 10px;
+      margin: 10px 0;
+      word-break: break-all;
+      border: 1px solid #FF9800;
+    }
+
+    .referral-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin: 15px 0;
+    }
+
+    .referral-stat {
+      background: rgba(255,255,255,0.05);
+      padding: 10px;
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    .custom-coin-item {
+      background: rgba(255,255,255,0.1);
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 10px;
+      border: 1px solid #2196F3;
+    }
+
+    .coin-creator {
+      background: rgba(255,255,255,0.1);
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 10px;
+      border: 1px solid #9C27B0;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 10px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 5px;
+      margin: 10px 0;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #FFD700, #FF9800);
+      border-radius: 5px;
+      transition: width 0.3s ease;
+    }
   </style>
 </head>
 <body>
 <div class="container">
+  <!-- Онлайн статус -->
+  <div class="online-status">
+    <div class="online-dot" id="onlineDot"></div>
+    <span id="onlineStatus">Загрузка...</span>
+  </div>
+
   <!-- Аватарка пользователя -->
   <img src="" class="user-avatar" id="userAvatar" style="display: none;">
   <div class="user-avatar" id="defaultAvatar" style="background: #FFD700; display: flex; align-items: center; justify-content: center; font-size: 24px;">👤</div>
@@ -474,6 +590,7 @@
     <button class="shop-button" id="shopButton">🛒 Магазин</button>
     <button class="roulette-button" id="rouletteButton">🎰 Рулетка</button>
     <button class="chart-button" id="chartButton">📈 График</button>
+    <button class="referral-button" id="referralButton">👥 Рефералы</button>
     <button class="reset-button" id="resetButton">Сбросить</button>
   </div>
 
@@ -482,6 +599,7 @@
     <p>Монетки: <span id="coins">0</span> 🪙</p>
     <p>Крипта: <span id="cryptoAmount">0</span> MEC</p>
     <p>Текущий скин: <span id="currentSkin">Обычный</span></p>
+    <p>Рефералы: <span id="referralCount">0</span>/10</p>
   </div>
 </div>
 
@@ -562,6 +680,16 @@
       <p class="boost-info">Цена: 50,000 🪙</p>
       <button class="buy-button" id="buySkinCrown">Купить за 50,000 🪙</button>
     </div>
+
+    <h3>💰 Создать свою монету</h3>
+    <div class="coin-creator">
+      <h4>🎨 Создать свою монету</h4>
+      <p>Создай свою криптовалюту и получай доход когда другие игроки покупают ее!</p>
+      <p class="boost-info">Цена создания: 900,000 🪙</p>
+      <input type="text" id="coinName" placeholder="Название монеты (3-10 символов)" maxlength="10" style="width: 100%; padding: 8px; margin: 10px 0; border-radius: 5px; border: 1px solid #FFD700; background: rgba(255,255,255,0.1); color: white;">
+      <input type="text" id="coinSymbol" placeholder="Символ (1-3 символа)" maxlength="3" style="width: 100%; padding: 8px; margin: 10px 0; border-radius: 5px; border: 1px solid #FFD700; background: rgba(255,255,255,0.1); color: white;">
+      <button class="buy-button" id="createCoin">Создать за 900,000 🪙</button>
+    </div>
   </div>
 </div>
 
@@ -583,7 +711,13 @@
 <div class="modal" id="chartModal">
   <div class="modal-content">
     <button class="close-button" id="closeChart">&times;</button>
-    <h2>📈 График MEC/USD</h2>
+    <h2>📈 Глобальный график MEC/USD</h2>
+
+    <div class="global-stats">
+      <div>👥 Онлайн игроков: <span id="onlinePlayers">0</span></div>
+      <div>💰 Игроков с монетами: <span id="playersWithCoins">0</span></div>
+      <div>🕒 Последнее обновление: <span id="lastUpdate">-</span></div>
+    </div>
 
     <div class="chart-info">
       <div>Текущая цена: <span id="currentPrice">1.00</span> USD</div>
@@ -606,6 +740,49 @@
 
     <div style="margin-top: 15px;">
       <input type="number" id="tradeAmount" placeholder="Количество MEC" min="1" style="width: 100%; padding: 8px; border-radius: 5px; border: 1px solid #FFD700; background: rgba(255,255,255,0.1); color: white;">
+    </div>
+
+    <h3 style="margin-top: 20px;">🪙 Пользовательские монеты</h3>
+    <div id="customCoinsList"></div>
+  </div>
+</div>
+
+<!-- Модальное окно рефералов -->
+<div class="modal" id="referralModal">
+  <div class="modal-content">
+    <button class="close-button" id="closeReferral">&times;</button>
+    <h2>👥 Реферальная система</h2>
+
+    <div class="referral-stats">
+      <div class="referral-stat">
+        <div style="font-size: 24px;">🎯</div>
+        <div>Приглашено</div>
+        <div style="font-size: 18px; font-weight: bold;" id="referralInvited">0</div>
+      </div>
+      <div class="referral-stat">
+        <div style="font-size: 24px;">💰</div>
+        <div>До бонуса</div>
+        <div style="font-size: 18px; font-weight: bold;" id="referralRemaining">10</div>
+      </div>
+    </div>
+
+    <div class="progress-bar">
+      <div class="progress-fill" id="referralProgress" style="width: 0%"></div>
+    </div>
+
+    <p>Пригласи 10 разных игроков и получи <strong>25,000 🪙</strong> бонуса!</p>
+
+    <div class="referral-link">
+      <strong>Ваша реферальная ссылка:</strong><br>
+      <span id="referralLink">Загрузка...</span>
+    </div>
+
+    <button class="buy-button" onclick="copyReferralLink()" style="margin-top: 10px;">📋 Скопировать ссылку</button>
+
+    <div class="shop-item" style="margin-top: 20px;">
+      <h4>🎁 Бонус за рефералов</h4>
+      <p>Получи 25,000 монет когда 10 разных игроков зайдут по вашей ссылке!</p>
+      <p class="boost-info">Текущий прогресс: <span id="referralProgressText">0/10</span></p>
     </div>
   </div>
 </div>
@@ -631,6 +808,11 @@
       <input type="checkbox" id="autoSaveEnabled" checked>
     </div>
 
+    <div class="settings-item">
+      <label>Онлайн график:</label>
+      <input type="checkbox" id="onlineChartEnabled" checked>
+    </div>
+
     <button class="reset-button" onclick="resetGame()" style="margin-top: 20px;">Сбросить весь прогресс</button>
   </div>
 </div>
@@ -647,6 +829,25 @@
 </div>
 
 <script>
+  // Конфигурация Firebase
+  const firebaseConfig = {
+    apiKey: "AIzaSyC4wGkQwSsx3gC3V3p3V3p3V3p3V3p3V3p3V3",
+    authDomain: "mecoin-game.firebaseapp.com",
+    databaseURL: "https://mecoin-game-default-rtdb.firebaseio.com",
+    projectId: "mecoin-game",
+    storageBucket: "mecoin-game.appspot.com",
+    messagingSenderId: "123456789012",
+    appId: "1:123456789012:web:abcdef123456"
+  };
+
+  // Инициализация Firebase
+  try {
+    firebase.initializeApp(firebaseConfig);
+    var database = firebase.database();
+  } catch (error) {
+    console.log('Firebase не доступен, используется локальный режим');
+  }
+
   // Инициализация Telegram Web App
   const tg = window.Telegram.WebApp;
   tg.expand();
@@ -672,9 +873,19 @@
   let ownedSkins = JSON.parse(localStorage.getItem('ownedSkins')) || ['default'];
   let cryptoAmount = parseInt(localStorage.getItem('cryptoAmount')) || 0;
 
-  // Переменные для графика
+  // Переменные для рефералов
+  let referralCount = parseInt(localStorage.getItem('referralCount')) || 0;
+  let referralCode = localStorage.getItem('referralCode') || generateReferralCode();
+  let referralBonusClaimed = localStorage.getItem('referralBonusClaimed') === 'true';
+
+  // Переменные для онлайн графика
   let priceHistory = JSON.parse(localStorage.getItem('priceHistory')) || [1.00];
   let currentPrice = priceHistory[priceHistory.length - 1];
+  let onlineChartEnabled = localStorage.getItem('onlineChartEnabled') !== 'false';
+  let userId = 'user_' + Math.random().toString(36).substr(2, 9);
+
+  // Переменные для пользовательских монет
+  let customCoins = JSON.parse(localStorage.getItem('customCoins')) || {};
 
   // Элементы DOM
   const scoreElement = document.getElementById('score');
@@ -683,22 +894,38 @@
   const cryptoAmountElement = document.getElementById('cryptoAmount');
   const boostLevelElement = document.getElementById('boostLevel');
   const currentSkinElement = document.getElementById('currentSkin');
+  const referralCountElement = document.getElementById('referralCount');
   const resetButton = document.getElementById('resetButton');
   const shopButton = document.getElementById('shopButton');
   const rouletteButton = document.getElementById('rouletteButton');
   const chartButton = document.getElementById('chartButton');
+  const referralButton = document.getElementById('referralButton');
   const shopModal = document.getElementById('shopModal');
   const rouletteModal = document.getElementById('rouletteModal');
   const chartModal = document.getElementById('chartModal');
+  const referralModal = document.getElementById('referralModal');
   const settingsModal = document.getElementById('settingsModal');
   const closeShop = document.getElementById('closeShop');
   const closeRoulette = document.getElementById('closeRoulette');
   const closeChart = document.getElementById('closeChart');
+  const closeReferral = document.getElementById('closeReferral');
   const closeSettings = document.getElementById('closeSettings');
   const spinButton = document.getElementById('spinButton');
   const rouletteResult = document.getElementById('rouletteResult');
   const userAvatarElement = document.getElementById('userAvatar');
   const defaultAvatarElement = document.getElementById('defaultAvatar');
+  const onlineDot = document.getElementById('onlineDot');
+  const onlineStatus = document.getElementById('onlineStatus');
+  const onlinePlayers = document.getElementById('onlinePlayers');
+  const playersWithCoins = document.getElementById('playersWithCoins');
+  const lastUpdate = document.getElementById('lastUpdate');
+  const referralLink = document.getElementById('referralLink');
+  const referralInvited = document.getElementById('referralInvited');
+  const referralRemaining = document.getElementById('referralRemaining');
+  const referralProgress = document.getElementById('referralProgress');
+  const referralProgressText = document.getElementById('referralProgressText');
+  const customCoinsList = document.getElementById('customCoinsList');
+  const createCoinButton = document.getElementById('createCoin');
 
   // Элементы панели разработчика
   const devPanel = document.getElementById('devPanel');
@@ -728,6 +955,290 @@
     { type: 'skin', chance: 10 },
     { type: 'nothing', chance: 11 }
   ];
+
+  // Функции для рефералов
+  function generateReferralCode() {
+    return 'ref_' + Math.random().toString(36).substr(2, 8).toUpperCase();
+  }
+
+  function initReferralSystem() {
+    // Сохраняем реферальный код
+    localStorage.setItem('referralCode', referralCode);
+
+    // Проверяем реферальную ссылку в URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const refCode = urlParams.get('ref');
+
+    if (refCode && refCode !== referralCode && database) {
+      // Регистрируем реферала
+      database.ref('referrals/' + refCode + '/' + userId).set({
+        timestamp: Date.now(),
+        ip: 'unknown'
+      });
+    }
+
+    // Обновляем реферальную ссылку
+    const baseUrl = window.location.href.split('?')[0];
+    referralLink.textContent = baseUrl + '?ref=' + referralCode;
+
+    updateReferralStats();
+  }
+
+  function updateReferralStats() {
+    if (database) {
+      // Получаем количество рефералов
+      database.ref('referrals/' + referralCode).once('value').then((snapshot) => {
+        const referrals = snapshot.val();
+        const uniqueReferrals = referrals ? Object.keys(referrals).length : 0;
+
+        referralCount = uniqueReferrals;
+        localStorage.setItem('referralCount', referralCount);
+
+        // Обновляем отображение
+        referralCountElement.textContent = referralCount + '/10';
+        referralInvited.textContent = referralCount;
+        referralRemaining.textContent = Math.max(0, 10 - referralCount);
+
+        const progress = Math.min(100, (referralCount / 10) * 100);
+        referralProgress.style.width = progress + '%';
+        referralProgressText.textContent = referralCount + '/10';
+
+        // Проверяем бонус
+        if (referralCount >= 10 && !referralBonusClaimed) {
+          claimReferralBonus();
+        }
+      });
+    }
+  }
+
+  function claimReferralBonus() {
+    coins += 25000;
+    referralBonusClaimed = true;
+    localStorage.setItem('referralBonusClaimed', 'true');
+    updateDisplay();
+    alert('🎉 Бонус за рефералов! Вы получили 25,000 монет!');
+  }
+
+  function copyReferralLink() {
+    navigator.clipboard.writeText(referralLink.textContent).then(() => {
+      alert('✅ Реферальная ссылка скопирована!');
+    });
+  }
+
+  // Функции для пользовательских монет
+  function createCustomCoin() {
+    const coinName = document.getElementById('coinName').value.trim();
+    const coinSymbol = document.getElementById('coinSymbol').value.trim().toUpperCase();
+
+    if (coins < 900000) {
+      alert('❌ Недостаточно монет для создания своей монеты! Нужно 900,000 🪙');
+      return;
+    }
+
+    if (coinName.length < 3 || coinName.length > 10) {
+      alert('❌ Название монеты должно быть от 3 до 10 символов!');
+      return;
+    }
+
+    if (coinSymbol.length < 1 || coinSymbol.length > 3) {
+      alert('❌ Символ монеты должен быть от 1 до 3 символов!');
+      return;
+    }
+
+    // Создаем монету
+    const coinId = 'coin_' + Date.now();
+    customCoins[coinId] = {
+      name: coinName,
+      symbol: coinSymbol,
+      owner: userId,
+      price: 1.00,
+      supply: 1000,
+      created: Date.now()
+    };
+
+    coins -= 900000;
+    localStorage.setItem('customCoins', JSON.stringify(customCoins));
+    updateDisplay();
+
+    if (database) {
+      database.ref('customCoins/' + coinId).set(customCoins[coinId]);
+    }
+
+    alert(`🎉 Вы создали монету "${coinName}" (${coinSymbol})!`);
+    document.getElementById('coinName').value = '';
+    document.getElementById('coinSymbol').value = '';
+  }
+
+  function updateCustomCoinsList() {
+    if (!database) return;
+
+    database.ref('customCoins').on('value', (snapshot) => {
+      const coinsData = snapshot.val();
+      let html = '';
+
+      if (coinsData) {
+        Object.entries(coinsData).forEach(([coinId, coin]) => {
+          html += `
+            <div class="custom-coin-item">
+              <h4>${coin.name} (${coin.symbol})</h4>
+              <p>Цена: ${coin.price} 🪙 | В обращении: ${coin.supply}</p>
+              <p>Создатель: ${coin.owner === userId ? 'Вы' : 'Другой игрок'}</p>
+              <input type="number" id="buyAmount_${coinId}" placeholder="Количество" min="1" max="100" style="width: 60px; padding: 5px; margin-right: 10px; border-radius: 5px; border: 1px solid #FFD700; background: rgba(255,255,255,0.1); color: white;">
+              <button class="buy-button" onclick="buyCustomCoin('${coinId}')" style="padding: 5px 10px; font-size: 12px;">Купить</button>
+            </div>
+          `;
+        });
+      }
+
+      customCoinsList.innerHTML = html || '<p>Пока нет созданных монет</p>';
+    });
+  }
+
+  function buyCustomCoin(coinId) {
+    if (!database) return;
+
+    const amount = parseInt(document.getElementById('buyAmount_' + coinId).value) || 0;
+    if (amount <= 0) {
+      alert('❌ Введите корректное количество!');
+      return;
+    }
+
+    database.ref('customCoins/' + coinId).once('value').then((snapshot) => {
+      const coin = snapshot.val();
+      if (!coin) {
+        alert('❌ Монета не найдена!');
+        return;
+      }
+
+      const totalCost = coin.price * amount;
+      if (coins < totalCost) {
+        alert('❌ Недостаточно монет для покупки!');
+        return;
+      }
+
+      // Совершаем покупку
+      coins -= totalCost;
+
+      // Отправляем монеты создателю
+      if (database && coin.owner !== userId) {
+        database.ref('userCoins/' + coin.owner).transaction((current) => {
+          return (current || 0) + totalCost;
+        });
+      }
+
+      updateDisplay();
+      alert(`✅ Вы купили ${amount} ${coin.symbol} за ${totalCost} монет!`);
+    });
+  }
+
+  // Функции для онлайн графика
+  function initOnlineChart() {
+    if (!database) {
+      onlineStatus.textContent = 'Офлайн режим';
+      onlineDot.classList.add('offline');
+      return;
+    }
+
+    // Слушаем изменения глобального графика
+    database.ref('global/chart').on('value', (snapshot) => {
+      const data = snapshot.val();
+      if (data && data.prices) {
+        priceHistory = data.prices;
+        currentPrice = priceHistory[priceHistory.length - 1];
+        updateChart();
+        updateOnlineStatus();
+        lastUpdate.textContent = new Date().toLocaleTimeString();
+      }
+    });
+
+    // Слушаем количество онлайн игроков
+    database.ref('onlineUsers').on('value', (snapshot) => {
+      const users = snapshot.val();
+      const count = users ? Object.keys(users).length : 0;
+      onlinePlayers.textContent = count;
+    });
+
+    // Слушаем статистику по монетам
+    database.ref('userCoins').on('value', (snapshot) => {
+      const usersData = snapshot.val();
+      const usersWithCoins = usersData ? Object.keys(usersData).length : 0;
+      playersWithCoins.textContent = usersWithCoins;
+    });
+
+    // Добавляем пользователя в онлайн
+    const userRef = database.ref('onlineUsers/' + userId);
+    userRef.set({
+      lastSeen: Date.now(),
+      name: tg.initDataUnsafe?.user?.first_name || 'Игрок',
+      coins: coins
+    });
+
+    // Сохраняем баланс пользователя
+    if (coins > 0) {
+      database.ref('userCoins/' + userId).set(coins);
+    }
+
+    // Удаляем при закрытии
+    window.addEventListener('beforeunload', () => {
+      userRef.remove();
+    });
+  }
+
+  function updateOnlinePrice() {
+    if (!database || !onlineChartEnabled) {
+      // Локальное обновление цены
+      const change = (Math.random() - 0.5) * 0.1;
+      currentPrice = Math.max(0.1, currentPrice + change);
+      priceHistory.push(currentPrice);
+
+      if (priceHistory.length > 50) {
+        priceHistory.shift();
+      }
+
+      localStorage.setItem('priceHistory', JSON.stringify(priceHistory));
+      updateChart();
+      return;
+    }
+
+    // Глобальное обновление цены
+    const change = (Math.random() - 0.5) * 0.1;
+    currentPrice = Math.max(0.1, currentPrice + change);
+    priceHistory.push(currentPrice);
+
+    if (priceHistory.length > 50) {
+      priceHistory.shift();
+    }
+
+    // Сохраняем в Firebase
+    database.ref('global/chart').set({
+      prices: priceHistory,
+      lastUpdate: Date.now(),
+      currentPrice: currentPrice
+    });
+
+    // Обновляем баланс пользователя если он онлайн
+    if (coins > 0) {
+      database.ref('userCoins/' + userId).set(coins);
+    }
+  }
+
+  function updateOnlineStatus() {
+    if (database && onlineChartEnabled) {
+      onlineStatus.textContent = 'Онлайн';
+      onlineDot.classList.remove('offline');
+    } else {
+      onlineStatus.textContent = 'Офлайн';
+      onlineDot.classList.add('offline');
+    }
+  }
+
+  // Инициализация всех систем
+  initOnlineChart();
+  initReferralSystem();
+  updateCustomCoinsList();
+
+  // [Остальной код остается без изменений...]
+  // Функции панели разработчика, обработчики событий и т.д.
 
   // Функции панели разработчика
   function openDevPanel() {
@@ -802,12 +1313,11 @@
 
   // Обработка нажатия клавиши ' (апостроф) для открытия панели разработчика
   document.addEventListener('keydown', function(event) {
-    if (event.key === "'" || event.key === "`") { // Апостроф или обратная кавычка
+    if (event.key === "'" || event.key === "`") {
       event.preventDefault();
       openDevPanel();
     }
 
-    // Alt + D тоже открывает панель разработчика
     if (event.altKey && event.key === 'd') {
       event.preventDefault();
       openDevPanel();
@@ -821,19 +1331,21 @@
     cryptoAmountElement.textContent = cryptoAmount;
     boostLevelElement.textContent = boostMultiplier + 'x';
     currentSkinElement.textContent = skins[currentSkin].name;
+    referralCountElement.textContent = referralCount + '/10';
 
-    // Применяем текущий скин
     applySkin(currentSkin);
-
-    // Обновляем доступность кнопок
     updateShopButtons();
 
-    // Сохраняем прогресс
     localStorage.setItem('gameCoins', coins);
     localStorage.setItem('boostMultiplier', boostMultiplier);
     localStorage.setItem('currentSkin', currentSkin);
     localStorage.setItem('ownedSkins', JSON.stringify(ownedSkins));
     localStorage.setItem('cryptoAmount', cryptoAmount);
+
+    // Обновляем онлайн статус если есть монеты
+    if (database && coins > 0) {
+      database.ref('userCoins/' + userId).set(coins);
+    }
   }
 
   // Применение скина
@@ -846,24 +1358,21 @@
 
   // Обновление доступности кнопок магазина
   function updateShopButtons() {
-    // Усилители
     document.getElementById('buyBoost2').disabled = coins < 1000;
     document.getElementById('buyBoost5').disabled = coins < 5000;
     document.getElementById('buyBoost10').disabled = coins < 10000;
     document.getElementById('buyBoost25').disabled = coins < 25000;
     document.getElementById('buyBoost50').disabled = coins < 50000;
 
-    // Скины
     document.getElementById('buySkinDiamond').disabled = coins < 5000 || ownedSkins.includes('diamond');
     document.getElementById('buySkinRuby').disabled = coins < 8000 || ownedSkins.includes('ruby');
     document.getElementById('buySkinEmerald').disabled = coins < 12000 || ownedSkins.includes('emerald');
     document.getElementById('buySkinBitcoin').disabled = coins < 20000 || ownedSkins.includes('bitcoin');
     document.getElementById('buySkinCrown').disabled = coins < 50000 || ownedSkins.includes('crown');
 
-    // Обновляем текст купленных скинов
-    updateSkinButtons();
+    document.getElementById('createCoin').disabled = coins < 900000;
 
-    // Рулетка
+    updateSkinButtons();
     spinButton.disabled = coins < 500;
   }
 
@@ -897,7 +1406,6 @@
     coins += boostMultiplier;
     updateDisplay();
 
-    // Анимация монеты
     tapButton.style.transform = 'scale(0.95) rotate(5deg)';
     setTimeout(() => {
       tapButton.style.transform = 'scale(1) rotate(0deg)';
@@ -914,9 +1422,13 @@
       cryptoAmount = 0;
       priceHistory = [1.00];
       currentPrice = 1.00;
+      referralCount = 0;
+      referralBonusClaimed = false;
+      customCoins = {};
       localStorage.clear();
       updateDisplay();
       updateChart();
+      updateReferralStats();
     }
   }
 
@@ -948,12 +1460,25 @@
     chartModal.style.display = 'none';
   }
 
+  function openReferral() {
+    referralModal.style.display = 'block';
+    updateReferralStats();
+  }
+
+  function closeReferralModal() {
+    referralModal.style.display = 'none';
+  }
+
   function openSettings() {
     settingsModal.style.display = 'block';
+    document.getElementById('onlineChartEnabled').checked = onlineChartEnabled;
   }
 
   function closeSettingsModal() {
     settingsModal.style.display = 'none';
+    onlineChartEnabled = document.getElementById('onlineChartEnabled').checked;
+    localStorage.setItem('onlineChartEnabled', onlineChartEnabled);
+    updateOnlineStatus();
   }
 
   // Функция покупки усилителя
@@ -992,7 +1517,6 @@
 
     coins -= 500;
 
-    // Выбор приза на основе шансов
     let random = Math.random() * 100;
     let cumulativeChance = 0;
     let prize = null;
@@ -1005,7 +1529,6 @@
       }
     }
 
-    // Обработка приза
     let message = '';
     if (prize.type === 'coins') {
       coins += prize.amount;
@@ -1036,38 +1559,19 @@
   }
 
   // Функции для графика и торговли
-  function updatePrice() {
-    // Генерируем случайное изменение цены от -0.5 до +0.5
-    const change = (Math.random() - 0.5) * 0.1;
-    currentPrice = Math.max(0.1, currentPrice + change);
-    priceHistory.push(currentPrice);
-
-    // Ограничиваем историю 50 точками
-    if (priceHistory.length > 50) {
-      priceHistory.shift();
-    }
-
-    localStorage.setItem('priceHistory', JSON.stringify(priceHistory));
-    updateChart();
-  }
-
   function updateChart() {
     const canvas = document.getElementById('priceChart');
     const ctx = canvas.getContext('2d');
 
-    // Устанавливаем размеры canvas
     canvas.width = canvas.offsetWidth;
     canvas.height = canvas.offsetHeight;
 
-    // Очищаем canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Находим min и max цены для масштабирования
     const minPrice = Math.min(...priceHistory);
     const maxPrice = Math.max(...priceHistory);
     const priceRange = maxPrice - minPrice || 1;
 
-    // Рисуем график
     ctx.beginPath();
     ctx.strokeStyle = currentPrice >= priceHistory[priceHistory.length - 2] ? '#4CAF50' : '#f44336';
     ctx.lineWidth = 2;
@@ -1085,7 +1589,6 @@
 
     ctx.stroke();
 
-    // Обновляем информацию о цене
     const priceChange = ((currentPrice - priceHistory[priceHistory.length - 2]) / priceHistory[priceHistory.length - 2] * 100) || 0;
     document.getElementById('currentPrice').textContent = currentPrice.toFixed(2);
     document.getElementById('priceChange').textContent = priceChange.toFixed(2);
@@ -1131,14 +1634,17 @@
   shopButton.addEventListener('click', openShop);
   rouletteButton.addEventListener('click', openRoulette);
   chartButton.addEventListener('click', openChart);
+  referralButton.addEventListener('click', openReferral);
   userAvatarElement.addEventListener('click', openSettings);
   defaultAvatarElement.addEventListener('click', openSettings);
   closeDevPanel.addEventListener('click', closeDevPanelFunc);
   devOverlay.addEventListener('click', closeDevPanelFunc);
+  createCoinButton.addEventListener('click', createCustomCoin);
 
   closeShop.addEventListener('click', closeShopModal);
   closeRoulette.addEventListener('click', closeRouletteModal);
   closeChart.addEventListener('click', closeChartModal);
+  closeReferral.addEventListener('click', closeReferralModal);
   closeSettings.addEventListener('click', closeSettingsModal);
 
   spinButton.addEventListener('click', spinRoulette);
@@ -1163,6 +1669,7 @@
     if (event.target === shopModal) closeShopModal();
     if (event.target === rouletteModal) closeRouletteModal();
     if (event.target === chartModal) closeChartModal();
+    if (event.target === referralModal) closeReferralModal();
     if (event.target === settingsModal) closeSettingsModal();
   });
 
@@ -1178,11 +1685,15 @@
   });
 
   // Обновление цены каждые 10 секунд
-  setInterval(updatePrice, 10000);
+  setInterval(updateOnlinePrice, 10000);
+
+  // Обновление реферальной статистики каждые 30 секунд
+  setInterval(updateReferralStats, 30000);
 
   // Инициализация при загрузке
   updateDisplay();
   updateChart();
+  updateOnlineStatus();
 </script>
 </body>
 </html>

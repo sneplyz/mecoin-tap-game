@@ -74,6 +74,12 @@
       text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
     }
 
+    .coin-button.diamond:after { content: '💎'; color: #b9f2ff; }
+    .coin-button.ruby:after { content: '🔴'; color: #e0115f; }
+    .coin-button.emerald:after { content: '💚'; color: #50c878; }
+    .coin-button.bitcoin:after { content: '₿'; color: #ff9900; }
+    .coin-button.crown:after { content: '👑'; color: #ffd700; }
+
     .coin-button:active {
       transform: scale(0.95) rotate(5deg);
       box-shadow:
@@ -141,9 +147,23 @@
       box-shadow: 0 4px 15px rgba(76,175,80,0.3);
     }
 
-    .shop-button:hover {
+    .roulette-button {
+      background: linear-gradient(145deg, #9C27B0, #7B1FA2);
+      border: none;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 25px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: bold;
+      margin: 10px;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(156,39,176,0.3);
+    }
+
+    .shop-button:hover, .roulette-button:hover {
       transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(76,175,80,0.4);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.4);
     }
 
     .modal {
@@ -170,6 +190,8 @@
       max-width: 350px;
       width: 90%;
       text-align: center;
+      max-height: 80vh;
+      overflow-y: auto;
     }
 
     .close-button {
@@ -224,6 +246,33 @@
       justify-content: center;
       gap: 10px;
       margin: 15px 0;
+      flex-wrap: wrap;
+    }
+
+    .skin-preview {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      margin: 5px auto;
+      border: 2px solid #FFD700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+    }
+
+    .roulette-prize {
+      font-size: 24px;
+      margin: 10px 0;
+      padding: 10px;
+      background: rgba(255,215,0,0.2);
+      border-radius: 10px;
+      border: 1px solid #FFD700;
+    }
+
+    .owned {
+      color: #4CAF50;
+      font-weight: bold;
     }
   </style>
 </head>
@@ -231,21 +280,20 @@
 <div class="container">
   <h1>MeCoin Retrieval</h1>
 
-  <div class="score" id="score">0</div>
+  <div class="score" id="score">0 монет</div>
 
   <button class="coin-button" id="tapButton"></button>
 
   <div class="buttons-row">
     <button class="shop-button" id="shopButton">🛒 Магазин</button>
-    <button class="reset-button" id="resetButton">Сбросить счет</button>
+    <button class="roulette-button" id="rouletteButton">🎰 Рулетка</button>
+    <button class="reset-button" id="resetButton">Сбросить</button>
   </div>
 
   <div class="stats">
-    <p>Всего кликов: <span id="totalClicks">0</span></p>
-    <p>Кликов в секунду: <span id="clicksPerSecond">0</span></p>
-    <p>Рекорд: <span id="record">0</span></p>
     <p>Усилитель: <span id="boostLevel">1x</span></p>
     <p>Монетки: <span id="coins">0</span> 🪙</p>
+    <p>Текущий скин: <span id="currentSkin">Обычный</span></p>
   </div>
 </div>
 
@@ -253,43 +301,93 @@
 <div class="modal" id="shopModal">
   <div class="modal-content">
     <button class="close-button" id="closeShop">&times;</button>
-    <h2>🛒 Магазин усилителей</h2>
+    <h2>🛒 Магазин</h2>
     
+    <h3>⚡ Усилители</h3>
     <div class="shop-item">
-      <h3>⚡ Усилитель x2</h3>
+      <h4>Усилитель x2</h4>
       <p>Дает 2 монетки за клик</p>
-      <p class="boost-info">Цена: 1000 монеток</p>
-      <button class="buy-button" id="buyBoost2" data-cost="1000" data-multiplier="2">
-        Купить за 1000 🪙
-      </button>
+      <p class="boost-info">Цена: 1,000 🪙</p>
+      <button class="buy-button" id="buyBoost2">Купить за 1,000 🪙</button>
     </div>
 
     <div class="shop-item">
-      <h3>⚡⚡ Усилитель x5</h3>
+      <h4>Усилитель x5</h4>
       <p>Дает 5 монеток за клик</p>
-      <p class="boost-info">Цена: 5000 монеток</p>
-      <button class="buy-button" id="buyBoost5" data-cost="5000" data-multiplier="5">
-        Купить за 5000 🪙
-      </button>
+      <p class="boost-info">Цена: 5,000 🪙</p>
+      <button class="buy-button" id="buyBoost5">Купить за 5,000 🪙</button>
     </div>
 
     <div class="shop-item">
-      <h3>⚡⚡⚡ Усилитель x10</h3>
+      <h4>Усилитель x10</h4>
       <p>Дает 10 монеток за клик</p>
-      <p class="boost-info">Цена: 10000 монеток</p>
-      <button class="buy-button" id="buyBoost10" data-cost="10000" data-multiplier="10">
-        Купить за 10000 🪙
-      </button>
+      <p class="boost-info">Цена: 10,000 🪙</p>
+      <button class="buy-button" id="buyBoost10">Купить за 10,000 🪙</button>
     </div>
 
     <div class="shop-item">
-      <h3>💰 Бонусные монетки</h3>
-      <p>+1000 монеток сразу</p>
-      <p class="boost-info">Цена: 500 кликов</p>
-      <button class="buy-button" id="buyCoins" data-cost="500" data-coins="1000">
-        Купить за 500 кликов
-      </button>
+      <h4>Усилитель x25</h4>
+      <p>Дает 25 монеток за клик</p>
+      <p class="boost-info">Цена: 25,000 🪙</p>
+      <button class="buy-button" id="buyBoost25">Купить за 25,000 🪙</button>
     </div>
+
+    <div class="shop-item">
+      <h4>Усилитель x50</h4>
+      <p>Дает 50 монеток за клик</p>
+      <p class="boost-info">Цена: 50,000 🪙</p>
+      <button class="buy-button" id="buyBoost50">Купить за 50,000 🪙</button>
+    </div>
+
+    <h3>🎨 Скины</h3>
+    <div class="shop-item">
+      <div class="skin-preview" style="background: radial-gradient(circle at 30% 30%, #b9f2ff, #0890ff, #0055ff);">💎</div>
+      <h4>Алмазный скин</h4>
+      <p class="boost-info">Цена: 5,000 🪙</p>
+      <button class="buy-button" id="buySkinDiamond">Купить за 5,000 🪙</button>
+    </div>
+
+    <div class="shop-item">
+      <div class="skin-preview" style="background: radial-gradient(circle at 30% 30%, #ff6b6b, #e0115f, #8b0000);">🔴</div>
+      <h4>Рубиновый скин</h4>
+      <p class="boost-info">Цена: 8,000 🪙</p>
+      <button class="buy-button" id="buySkinRuby">Купить за 8,000 🪙</button>
+    </div>
+
+    <div class="shop-item">
+      <div class="skin-preview" style="background: radial-gradient(circle at 30% 30%, #50c878, #228b22, #006400);">💚</div>
+      <h4>Изумрудный скин</h4>
+      <p class="boost-info">Цена: 12,000 🪙</p>
+      <button class="buy-button" id="buySkinEmerald">Купить за 12,000 🪙</button>
+    </div>
+
+    <div class="shop-item">
+      <div class="skin-preview" style="background: radial-gradient(circle at 30% 30%, #ff9900, #ff6600, #cc5500);">₿</div>
+      <h4>Биткоин скин</h4>
+      <p class="boost-info">Цена: 20,000 🪙</p>
+      <button class="buy-button" id="buySkinBitcoin">Купить за 20,000 🪙</button>
+    </div>
+
+    <div class="shop-item">
+      <div class="skin-preview" style="background: radial-gradient(circle at 30% 30%, #ffd700, #ffa500, #ff8c00);">👑</div>
+      <h4>Королевский скин</h4>
+      <p class="boost-info">Цена: 50,000 🪙</p>
+      <button class="buy-button" id="buySkinCrown">Купить за 50,000 🪙</button>
+    </div>
+  </div>
+</div>
+
+<!-- Модальное окно рулетки -->
+<div class="modal" id="rouletteModal">
+  <div class="modal-content">
+    <button class="close-button" id="closeRoulette">&times;</button>
+    <h2>🎰 Рулетка</h2>
+    <p>Стоимость спина: 500 🪙</p>
+    <p>Шанс выигрыша скина: 10%</p>
+    
+    <button class="roulette-button" id="spinButton" style="font-size: 20px; padding: 15px 30px;">🎰 Крутить рулетку!</button>
+    
+    <div id="rouletteResult"></div>
   </div>
 </div>
 
@@ -300,68 +398,125 @@
   tg.ready();
 
   // Переменные игры
-  let score = 0;
-  let totalClicks = 0;
-  let clicksInSecond = 0;
-  let record = localStorage.getItem('tapRecord') || 0;
   let coins = parseInt(localStorage.getItem('gameCoins')) || 0;
   let boostMultiplier = parseInt(localStorage.getItem('boostMultiplier')) || 1;
+  let currentSkin = localStorage.getItem('currentSkin') || 'default';
+  let ownedSkins = JSON.parse(localStorage.getItem('ownedSkins')) || ['default'];
 
   // Элементы DOM
   const scoreElement = document.getElementById('score');
   const tapButton = document.getElementById('tapButton');
-  const totalClicksElement = document.getElementById('totalClicks');
-  const clicksPerSecondElement = document.getElementById('clicksPerSecond');
-  const recordElement = document.getElementById('record');
-  const resetButton = document.getElementById('resetButton');
-  const shopButton = document.getElementById('shopButton');
-  const shopModal = document.getElementById('shopModal');
-  const closeShop = document.getElementById('closeShop');
   const coinsElement = document.getElementById('coins');
   const boostLevelElement = document.getElementById('boostLevel');
-  const buyBoost2 = document.getElementById('buyBoost2');
-  const buyBoost5 = document.getElementById('buyBoost5');
-  const buyBoost10 = document.getElementById('buyBoost10');
-  const buyCoins = document.getElementById('buyCoins');
+  const currentSkinElement = document.getElementById('currentSkin');
+  const resetButton = document.getElementById('resetButton');
+  const shopButton = document.getElementById('shopButton');
+  const rouletteButton = document.getElementById('rouletteButton');
+  const shopModal = document.getElementById('shopModal');
+  const rouletteModal = document.getElementById('rouletteModal');
+  const closeShop = document.getElementById('closeShop');
+  const closeRoulette = document.getElementById('closeRoulette');
+  const spinButton = document.getElementById('spinButton');
+  const rouletteResult = document.getElementById('rouletteResult');
+
+  // Скины
+  const skins = {
+    'default': { name: 'Обычный', class: '', price: 0 },
+    'diamond': { name: 'Алмазный', class: 'diamond', price: 5000 },
+    'ruby': { name: 'Рубиновый', class: 'ruby', price: 8000 },
+    'emerald': { name: 'Изумрудный', class: 'emerald', price: 12000 },
+    'bitcoin': { name: 'Биткоин', class: 'bitcoin', price: 20000 },
+    'crown': { name: 'Королевский', class: 'crown', price: 50000 }
+  };
+
+  // Призы рулетки
+  const roulettePrizes = [
+    { type: 'coins', amount: 100, chance: 25 },
+    { type: 'coins', amount: 250, chance: 20 },
+    { type: 'coins', amount: 500, chance: 15 },
+    { type: 'coins', amount: 1000, chance: 10 },
+    { type: 'coins', amount: 2500, chance: 5 },
+    { type: 'coins', amount: 5000, chance: 3 },
+    { type: 'coins', amount: 10000, chance: 1 },
+    { type: 'skin', chance: 10 },
+    { type: 'nothing', chance: 11 }
+  ];
 
   // Инициализация отображения
   function updateDisplay() {
-    scoreElement.textContent = score;
-    totalClicksElement.textContent = totalClicks;
-    recordElement.textContent = record;
+    scoreElement.textContent = coins + ' монет';
     coinsElement.textContent = coins;
     boostLevelElement.textContent = boostMultiplier + 'x';
+    currentSkinElement.textContent = skins[currentSkin].name;
     
-    // Обновляем доступность кнопок в магазине
+    // Применяем текущий скин
+    applySkin(currentSkin);
+    
+    // Обновляем доступность кнопок
     updateShopButtons();
+  }
+
+  // Применение скина
+  function applySkin(skin) {
+    tapButton.className = 'coin-button';
+    if (skin !== 'default') {
+      tapButton.classList.add(skins[skin].class);
+    }
   }
 
   // Обновление доступности кнопок магазина
   function updateShopButtons() {
-    buyBoost2.disabled = coins < 1000;
-    buyBoost5.disabled = coins < 5000;
-    buyBoost10.disabled = coins < 10000;
-    buyCoins.disabled = totalClicks < 500;
+    // Усилители
+    document.getElementById('buyBoost2').disabled = coins < 1000;
+    document.getElementById('buyBoost5').disabled = coins < 5000;
+    document.getElementById('buyBoost10').disabled = coins < 10000;
+    document.getElementById('buyBoost25').disabled = coins < 25000;
+    document.getElementById('buyBoost50').disabled = coins < 50000;
+    
+    // Скины
+    document.getElementById('buySkinDiamond').disabled = coins < 5000 || ownedSkins.includes('diamond');
+    document.getElementById('buySkinRuby').disabled = coins < 8000 || ownedSkins.includes('ruby');
+    document.getElementById('buySkinEmerald').disabled = coins < 12000 || ownedSkins.includes('emerald');
+    document.getElementById('buySkinBitcoin').disabled = coins < 20000 || ownedSkins.includes('bitcoin');
+    document.getElementById('buySkinCrown').disabled = coins < 50000 || ownedSkins.includes('crown');
+    
+    // Обновляем текст купленных скинов
+    updateSkinButtons();
+    
+    // Рулетка
+    spinButton.disabled = coins < 500;
+  }
+
+  // Обновление кнопок скинов
+  function updateSkinButtons() {
+    const skinButtons = {
+      'diamond': document.getElementById('buySkinDiamond'),
+      'ruby': document.getElementById('buySkinRuby'),
+      'emerald': document.getElementById('buySkinEmerald'),
+      'bitcoin': document.getElementById('buySkinBitcoin'),
+      'crown': document.getElementById('buySkinCrown')
+    };
+
+    for (const [skin, button] of Object.entries(skinButtons)) {
+      if (ownedSkins.includes(skin)) {
+        button.textContent = '✓ Куплено';
+        button.disabled = true;
+        if (currentSkin === skin) {
+          button.innerHTML = '✓ Выбрано <span class="owned">★</span>';
+        } else {
+          button.innerHTML = '✓ Выбрать скин';
+          button.disabled = false;
+          button.onclick = () => selectSkin(skin);
+        }
+      }
+    }
   }
 
   // Функция обработки клика
   function handleClick() {
-    score++;
-    totalClicks++;
-    clicksInSecond++;
-    coins += boostMultiplier; // Добавляем монетки с учетом усилителя
-
-    // Сохраняем в localStorage
+    coins += boostMultiplier;
     localStorage.setItem('gameCoins', coins);
-    
     updateDisplay();
-
-    // Обновляем рекорд
-    if (score > record) {
-      record = score;
-      recordElement.textContent = record;
-      localStorage.setItem('tapRecord', record);
-    }
 
     // Анимация монеты
     tapButton.style.transform = 'scale(0.95) rotate(5deg)';
@@ -370,10 +525,16 @@
     }, 100);
   }
 
-  // Функция сброса счета
-  function resetScore() {
-    score = 0;
-    updateDisplay();
+  // Функция сброса
+  function resetGame() {
+    if (confirm('Вы уверены? Это сбросит все прогресс!')) {
+      coins = 0;
+      boostMultiplier = 1;
+      currentSkin = 'default';
+      ownedSkins = ['default'];
+      localStorage.clear();
+      updateDisplay();
+    }
   }
 
   // Функции для магазина
@@ -386,8 +547,17 @@
     shopModal.style.display = 'none';
   }
 
+  function openRoulette() {
+    rouletteModal.style.display = 'block';
+    updateShopButtons();
+  }
+
+  function closeRouletteModal() {
+    rouletteModal.style.display = 'none';
+  }
+
   // Функция покупки усилителя
-  function buyBoost(cost, multiplier) {
+  function buyBoost(multiplier, cost) {
     if (coins >= cost) {
       coins -= cost;
       boostMultiplier = multiplier;
@@ -398,39 +568,108 @@
     }
   }
 
-  // Функция покупки монеток
-  function buyBonusCoins(cost, bonusCoins) {
-    if (totalClicks >= cost) {
-      coins += bonusCoins;
+  // Функция покупки скина
+  function buySkin(skin) {
+    const skinData = skins[skin];
+    if (coins >= skinData.price && !ownedSkins.includes(skin)) {
+      coins -= skinData.price;
+      ownedSkins.push(skin);
       localStorage.setItem('gameCoins', coins);
+      localStorage.setItem('ownedSkins', JSON.stringify(ownedSkins));
+      selectSkin(skin);
       updateDisplay();
-      alert(`🎉 Получено ${bonusCoins} монеток!`);
+      alert(`🎉 Скин "${skinData.name}" куплен и активирован!`);
     }
   }
 
-  // Сброс счетчика кликов в секунду каждую секунду
-  setInterval(() => {
-    clicksPerSecondElement.textContent = clicksInSecond;
-    clicksInSecond = 0;
-  }, 1000);
+  // Функция выбора скина
+  function selectSkin(skin) {
+    if (ownedSkins.includes(skin)) {
+      currentSkin = skin;
+      localStorage.setItem('currentSkin', skin);
+      updateDisplay();
+    }
+  }
+
+  // Функция рулетки
+  function spinRoulette() {
+    if (coins < 500) return;
+
+    coins -= 500;
+    localStorage.setItem('gameCoins', coins);
+
+    // Выбор приза на основе шансов
+    let random = Math.random() * 100;
+    let cumulativeChance = 0;
+    let prize = null;
+
+    for (const p of roulettePrizes) {
+      cumulativeChance += p.chance;
+      if (random <= cumulativeChance) {
+        prize = p;
+        break;
+      }
+    }
+
+    // Обработка приза
+    let message = '';
+    if (prize.type === 'coins') {
+      coins += prize.amount;
+      message = `🎉 Вы выиграли ${prize.amount} монет!`;
+    } else if (prize.type === 'skin') {
+      const availableSkins = Object.keys(skins).filter(skin => 
+        skin !== 'default' && !ownedSkins.includes(skin)
+      );
+      
+      if (availableSkins.length > 0) {
+        const randomSkin = availableSkins[Math.floor(Math.random() * availableSkins.length)];
+        ownedSkins.push(randomSkin);
+        message = `🎉 Вы выиграли скин "${skins[randomSkin].name}"!`;
+        if (confirm(message + '\n\nАктивировать сейчас?')) {
+          selectSkin(randomSkin);
+        }
+      } else {
+        const bonusCoins = 5000;
+        coins += bonusCoins;
+        message = `🎉 Все скины уже есть! Бонус: ${bonusCoins} монет!`;
+      }
+    } else {
+      message = '😔 Повезет в следующий раз!';
+    }
+
+    localStorage.setItem('gameCoins', coins);
+    localStorage.setItem('ownedSkins', JSON.stringify(ownedSkins));
+    
+    rouletteResult.innerHTML = `<div class="roulette-prize">${message}</div>`;
+    updateDisplay();
+  }
 
   // Обработчики событий
   tapButton.addEventListener('click', handleClick);
-  resetButton.addEventListener('click', resetScore);
+  resetButton.addEventListener('click', resetGame);
   shopButton.addEventListener('click', openShop);
+  rouletteButton.addEventListener('click', openRoulette);
   closeShop.addEventListener('click', closeShopModal);
+  closeRoulette.addEventListener('click', closeRouletteModal);
+  spinButton.addEventListener('click', spinRoulette);
 
   // Обработчики для кнопок магазина
-  buyBoost2.addEventListener('click', () => buyBoost(1000, 2));
-  buyBoost5.addEventListener('click', () => buyBoost(5000, 5));
-  buyBoost10.addEventListener('click', () => buyBoost(10000, 10));
-  buyCoins.addEventListener('click', () => buyBonusCoins(500, 1000));
+  document.getElementById('buyBoost2').addEventListener('click', () => buyBoost(2, 1000));
+  document.getElementById('buyBoost5').addEventListener('click', () => buyBoost(5, 5000));
+  document.getElementById('buyBoost10').addEventListener('click', () => buyBoost(10, 10000));
+  document.getElementById('buyBoost25').addEventListener('click', () => buyBoost(25, 25000));
+  document.getElementById('buyBoost50').addEventListener('click', () => buyBoost(50, 50000));
 
-  // Закрытие модального окна при клике вне его
+  document.getElementById('buySkinDiamond').addEventListener('click', () => buySkin('diamond'));
+  document.getElementById('buySkinRuby').addEventListener('click', () => buySkin('ruby'));
+  document.getElementById('buySkinEmerald').addEventListener('click', () => buySkin('emerald'));
+  document.getElementById('buySkinBitcoin').addEventListener('click', () => buySkin('bitcoin'));
+  document.getElementById('buySkinCrown').addEventListener('click', () => buySkin('crown'));
+
+  // Закрытие модальных окон при клике вне их
   window.addEventListener('click', (event) => {
-    if (event.target === shopModal) {
-      closeShopModal();
-    }
+    if (event.target === shopModal) closeShopModal();
+    if (event.target === rouletteModal) closeRouletteModal();
   });
 
   // Поддержка тапов на мобильных
@@ -439,19 +678,12 @@
     handleClick();
   });
 
-  // Вибрация при клике (если поддерживается)
+  // Вибрация при клике
   tapButton.addEventListener('click', function() {
-    if (navigator.vibrate) {
-      navigator.vibrate(10);
-    }
+    if (navigator.vibrate) navigator.vibrate(10);
   });
 
-  // Предотвращение двойного тапа на мобильных
-  tapButton.addEventListener('touchend', function(e) {
-    e.preventDefault();
-  });
-
-  // Инициализация отображения при загрузке
+  // Инициализация при загрузке
   updateDisplay();
 </script>
 </body>

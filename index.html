@@ -566,6 +566,26 @@
       border-radius: 5px;
       transition: width 0.3s ease;
     }
+
+    /* Исправления для полей ввода */
+    input:focus {
+      outline: 2px solid #FFD700;
+      outline-offset: 2px;
+    }
+
+    textarea:focus {
+      outline: 2px solid #FFD700;
+      outline-offset: 2px;
+    }
+
+    /* Запрещаем обработку событий для полей ввода */
+    .input-field {
+      pointer-events: auto !important;
+    }
+
+    .input-field * {
+      pointer-events: auto !important;
+    }
   </style>
 </head>
 <body>
@@ -686,8 +706,8 @@
       <h4>🎨 Создать свою монету</h4>
       <p>Создай свою криптовалюту и получай доход когда другие игроки покупают ее!</p>
       <p class="boost-info">Цена создания: 900,000 🪙</p>
-      <input type="text" id="coinName" placeholder="Название монеты (3-10 символов)" maxlength="10" style="width: 100%; padding: 8px; margin: 10px 0; border-radius: 5px; border: 1px solid #FFD700; background: rgba(255,255,255,0.1); color: white;">
-      <input type="text" id="coinSymbol" placeholder="Символ (1-3 символа)" maxlength="3" style="width: 100%; padding: 8px; margin: 10px 0; border-radius: 5px; border: 1px solid #FFD700; background: rgba(255,255,255,0.1); color: white;">
+      <input type="text" id="coinName" placeholder="Название монеты (3-10 символов)" maxlength="10" style="width: 100%; padding: 8px; margin: 10px 0; border-radius: 5px; border: 1px solid #FFD700; background: rgba(255,255,255,0.1); color: white;" class="input-field">
+      <input type="text" id="coinSymbol" placeholder="Символ (1-3 символа)" maxlength="3" style="width: 100%; padding: 8px; margin: 10px 0; border-radius: 5px; border: 1px solid #FFD700; background: rgba(255,255,255,0.1); color: white;" class="input-field">
       <button class="buy-button" id="createCoin">Создать за 900,000 🪙</button>
     </div>
   </div>
@@ -739,7 +759,7 @@
     </div>
 
     <div style="margin-top: 15px;">
-      <input type="number" id="tradeAmount" placeholder="Количество MEC" min="1" style="width: 100%; padding: 8px; border-radius: 5px; border: 1px solid #FFD700; background: rgba(255,255,255,0.1); color: white;">
+      <input type="number" id="tradeAmount" placeholder="Количество MEC" min="1" style="width: 100%; padding: 8px; border-radius: 5px; border: 1px solid #FFD700; background: rgba(255,255,255,0.1); color: white;" class="input-field">
     </div>
 
     <h3 style="margin-top: 20px;">🪙 Пользовательские монеты</h3>
@@ -795,22 +815,22 @@
 
     <div class="settings-item">
       <label>Звуки:</label>
-      <input type="checkbox" id="soundEnabled" checked>
+      <input type="checkbox" id="soundEnabled" checked class="input-field">
     </div>
 
     <div class="settings-item">
       <label>Вибрация:</label>
-      <input type="checkbox" id="vibrationEnabled" checked>
+      <input type="checkbox" id="vibrationEnabled" checked class="input-field">
     </div>
 
     <div class="settings-item">
       <label>Авто-сохранение:</label>
-      <input type="checkbox" id="autoSaveEnabled" checked>
+      <input type="checkbox" id="autoSaveEnabled" checked class="input-field">
     </div>
 
     <div class="settings-item">
       <label>Онлайн график:</label>
-      <input type="checkbox" id="onlineChartEnabled" checked>
+      <input type="checkbox" id="onlineChartEnabled" checked class="input-field">
     </div>
 
     <button class="reset-button" onclick="resetGame()" style="margin-top: 20px;">Сбросить весь прогресс</button>
@@ -822,9 +842,8 @@
 <div class="dev-panel" id="devPanel">
   <button class="dev-close" id="closeDevPanel">&times;</button>
   <h3>🔧 Панель разработчика</h3>
-
-
-  <input type="text" class="dev-input" id="devCommand" placeholder="Введите команду...">
+  
+  <input type="text" class="dev-input input-field" id="devCommand" placeholder="Введите команду...">
   <button class="dev-button" onclick="executeDevCommand()">Выполнить команду</button>
 </div>
 
@@ -1083,7 +1102,7 @@
               <h4>${coin.name} (${coin.symbol})</h4>
               <p>Цена: ${coin.price} 🪙 | В обращении: ${coin.supply}</p>
               <p>Создатель: ${coin.owner === userId ? 'Вы' : 'Другой игрок'}</p>
-              <input type="number" id="buyAmount_${coinId}" placeholder="Количество" min="1" max="100" style="width: 60px; padding: 5px; margin-right: 10px; border-radius: 5px; border: 1px solid #FFD700; background: rgba(255,255,255,0.1); color: white;">
+              <input type="number" id="buyAmount_${coinId}" placeholder="Количество" min="1" max="100" style="width: 60px; padding: 5px; margin-right: 10px; border-radius: 5px; border: 1px solid #FFD700; background: rgba(255,255,255,0.1); color: white;" class="input-field">
               <button class="buy-button" onclick="buyCustomCoin('${coinId}')" style="padding: 5px 10px; font-size: 12px;">Купить</button>
             </div>
           `;
@@ -1236,9 +1255,6 @@
   initOnlineChart();
   initReferralSystem();
   updateCustomCoinsList();
-
-  // [Остальной код остается без изменений...]
-  // Функции панели разработчика, обработчики событий и т.д.
 
   // Функции панели разработчика
   function openDevPanel() {
@@ -1628,7 +1644,7 @@
     }
   }
 
-  // Обработчики событий
+  // Обработчики событий - ИСПРАВЛЕНИЕ ДЛЯ ПОЛЕЙ ВВОДА
   tapButton.addEventListener('click', handleClick);
   resetButton.addEventListener('click', resetGame);
   shopButton.addEventListener('click', openShop);
@@ -1664,24 +1680,32 @@
   document.getElementById('buySkinBitcoin').addEventListener('click', () => buySkin('bitcoin'));
   document.getElementById('buySkinCrown').addEventListener('click', () => buySkin('crown'));
 
-  // Закрытие модальных окон при клике вне их
+  // Закрытие модальных окон при клике вне их - ИСПРАВЛЕНИЕ
   window.addEventListener('click', (event) => {
-    if (event.target === shopModal) closeShopModal();
-    if (event.target === rouletteModal) closeRouletteModal();
-    if (event.target === chartModal) closeChartModal();
-    if (event.target === referralModal) closeReferralModal();
-    if (event.target === settingsModal) closeSettingsModal();
+    // Проверяем, что клик был по overlay, а не по полю ввода
+    if (event.target.classList.contains('modal')) {
+      if (event.target === shopModal) closeShopModal();
+      if (event.target === rouletteModal) closeRouletteModal();
+      if (event.target === chartModal) closeChartModal();
+      if (event.target === referralModal) closeReferralModal();
+      if (event.target === settingsModal) closeSettingsModal();
+    }
   });
 
-  // Поддержка тапов на мобильных
+  // Поддержка тапов на мобильных - ИСПРАВЛЕНИЕ
   tapButton.addEventListener('touchstart', function(e) {
-    e.preventDefault();
-    handleClick();
+    // Проверяем, что тап не по полю ввода
+    if (!e.target.classList.contains('input-field')) {
+      e.preventDefault();
+      handleClick();
+    }
   });
 
   // Вибрация при клике
   tapButton.addEventListener('click', function() {
-    if (navigator.vibrate) navigator.vibrate(10);
+    if (navigator.vibrate && !event.target.classList.contains('input-field')) {
+      navigator.vibrate(10);
+    }
   });
 
   // Обновление цены каждые 10 секунд

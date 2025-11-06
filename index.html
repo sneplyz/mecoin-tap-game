@@ -6,6 +6,7 @@
   <title>MeCoin Retrieval</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
+    /* Существующие стили остаются без изменений */
     body {
       margin: 0;
       padding: 20px;
@@ -380,6 +381,81 @@
       background: rgba(255,255,255,0.1);
       color: white;
     }
+
+    /* Стили для панели разработчика */
+    .dev-panel {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #2d2d2d;
+      padding: 20px;
+      border-radius: 10px;
+      border: 2px solid #FFD700;
+      z-index: 1001;
+      display: none;
+      max-width: 400px;
+      width: 90%;
+      box-shadow: 0 0 30px rgba(255,215,0,0.5);
+    }
+
+    .dev-panel h3 {
+      color: #FFD700;
+      margin-bottom: 15px;
+      text-align: center;
+    }
+
+    .dev-command {
+      background: #1a1a1a;
+      padding: 10px;
+      border-radius: 5px;
+      margin: 10px 0;
+      border: 1px solid #FFD700;
+    }
+
+    .dev-input {
+      width: 100%;
+      padding: 8px;
+      border-radius: 5px;
+      border: 1px solid #FFD700;
+      background: rgba(255,255,255,0.1);
+      color: white;
+      margin: 10px 0;
+    }
+
+    .dev-button {
+      background: linear-gradient(145deg, #FFD700, #D4AF37);
+      border: none;
+      color: #000;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+      margin: 5px;
+      width: 100%;
+    }
+
+    .dev-close {
+      position: absolute;
+      top: 5px;
+      right: 10px;
+      background: none;
+      border: none;
+      color: #FFD700;
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    .dev-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.8);
+      z-index: 1000;
+      display: none;
+    }
   </style>
 </head>
 <body>
@@ -414,7 +490,7 @@
   <div class="modal-content">
     <button class="close-button" id="closeShop">&times;</button>
     <h2>🛒 Магазин</h2>
-    
+
     <h3>⚡ Усилители</h3>
     <div class="shop-item">
       <h4>Усилитель x2</h4>
@@ -496,9 +572,9 @@
     <h2>🎰 Рулетка</h2>
     <p>Стоимость спина: 500 🪙</p>
     <p>Шанс выигрыша скина: 10%</p>
-    
+
     <button class="roulette-button" id="spinButton" style="font-size: 20px; padding: 15px 30px;">🎰 Крутить рулетку!</button>
-    
+
     <div id="rouletteResult"></div>
   </div>
 </div>
@@ -508,26 +584,26 @@
   <div class="modal-content">
     <button class="close-button" id="closeChart">&times;</button>
     <h2>📈 График MEC/USD</h2>
-    
+
     <div class="chart-info">
       <div>Текущая цена: <span id="currentPrice">1.00</span> USD</div>
       <div>Изменение: <span id="priceChange">0.00</span>%</div>
     </div>
-    
+
     <div class="chart-container">
       <canvas id="priceChart" class="chart-canvas"></canvas>
     </div>
-    
+
     <div class="chart-info">
       <div>Ваш баланс: <span id="cryptoBalance">0</span> MEC</div>
       <div>Стоимость: <span id="cryptoValue">0.00</span> USD</div>
     </div>
-    
+
     <div class="trade-buttons">
       <button class="buy-crypto-button" id="buyCrypto">Купить MEC</button>
       <button class="sell-crypto-button" id="sellCrypto">Продать MEC</button>
     </div>
-    
+
     <div style="margin-top: 15px;">
       <input type="number" id="tradeAmount" placeholder="Количество MEC" min="1" style="width: 100%; padding: 8px; border-radius: 5px; border: 1px solid #FFD700; background: rgba(255,255,255,0.1); color: white;">
     </div>
@@ -539,24 +615,35 @@
   <div class="modal-content">
     <button class="close-button" id="closeSettings">&times;</button>
     <h2>⚙️ Настройки</h2>
-    
+
     <div class="settings-item">
       <label>Звуки:</label>
       <input type="checkbox" id="soundEnabled" checked>
     </div>
-    
+
     <div class="settings-item">
       <label>Вибрация:</label>
       <input type="checkbox" id="vibrationEnabled" checked>
     </div>
-    
+
     <div class="settings-item">
       <label>Авто-сохранение:</label>
       <input type="checkbox" id="autoSaveEnabled" checked>
     </div>
-    
+
     <button class="reset-button" onclick="resetGame()" style="margin-top: 20px;">Сбросить весь прогресс</button>
   </div>
+</div>
+
+<!-- Панель разработчика -->
+<div class="dev-overlay" id="devOverlay"></div>
+<div class="dev-panel" id="devPanel">
+  <button class="dev-close" id="closeDevPanel">&times;</button>
+  <h3>🔧 Панель разработчика</h3>
+
+
+  <input type="text" class="dev-input" id="devCommand" placeholder="Введите команду...">
+  <button class="dev-button" onclick="executeDevCommand()">Выполнить команду</button>
 </div>
 
 <script>
@@ -568,7 +655,7 @@
   // Загрузка аватарки пользователя
   const userAvatar = document.getElementById('userAvatar');
   const defaultAvatar = document.getElementById('defaultAvatar');
-  
+
   if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
     const user = tg.initDataUnsafe.user;
     if (user.photo_url) {
@@ -584,7 +671,7 @@
   let currentSkin = localStorage.getItem('currentSkin') || 'default';
   let ownedSkins = JSON.parse(localStorage.getItem('ownedSkins')) || ['default'];
   let cryptoAmount = parseInt(localStorage.getItem('cryptoAmount')) || 0;
-  
+
   // Переменные для графика
   let priceHistory = JSON.parse(localStorage.getItem('priceHistory')) || [1.00];
   let currentPrice = priceHistory[priceHistory.length - 1];
@@ -613,6 +700,12 @@
   const userAvatarElement = document.getElementById('userAvatar');
   const defaultAvatarElement = document.getElementById('defaultAvatar');
 
+  // Элементы панели разработчика
+  const devPanel = document.getElementById('devPanel');
+  const devOverlay = document.getElementById('devOverlay');
+  const closeDevPanel = document.getElementById('closeDevPanel');
+  const devCommand = document.getElementById('devCommand');
+
   // Скины
   const skins = {
     'default': { name: 'Обычный', class: '', price: 0 },
@@ -636,6 +729,91 @@
     { type: 'nothing', chance: 11 }
   ];
 
+  // Функции панели разработчика
+  function openDevPanel() {
+    devPanel.style.display = 'block';
+    devOverlay.style.display = 'block';
+  }
+
+  function closeDevPanelFunc() {
+    devPanel.style.display = 'none';
+    devOverlay.style.display = 'none';
+  }
+
+  function executeDevCommand() {
+    const command = devCommand.value.toLowerCase().trim();
+    const args = command.split(' ');
+
+    switch(args[0]) {
+      case 'give':
+        if (args[1] === 'coins' && args[2]) {
+          const amount = parseInt(args[2]);
+          coins += amount;
+          updateDisplay();
+          alert(`✅ Добавлено ${amount} монет!`);
+        } else if (args[1] === 'crypto' && args[2]) {
+          const amount = parseInt(args[2]);
+          cryptoAmount += amount;
+          updateDisplay();
+          alert(`✅ Добавлено ${amount} MEC!`);
+        }
+        break;
+
+      case 'set':
+        if (args[1] === 'multiplier' && args[2]) {
+          const multiplier = parseInt(args[2]);
+          boostMultiplier = multiplier;
+          updateDisplay();
+          alert(`✅ Множитель установлен на ${multiplier}x!`);
+        }
+        break;
+
+      case 'unlock':
+        if (args[1] === 'all') {
+          ownedSkins = Object.keys(skins);
+          updateDisplay();
+          alert('✅ Все скины разблокированы!');
+        }
+        break;
+
+      case 'reset':
+        if (args[1] === 'all') {
+          resetGame();
+        }
+        break;
+
+      case 'snepsecret':
+        giveMillionCoins();
+        break;
+
+      default:
+        alert('❌ Неизвестная команда!');
+    }
+
+    devCommand.value = '';
+  }
+
+  // Секретная команда - выдает 1,000,000 монет
+  function giveMillionCoins() {
+    coins += 1000000;
+    updateDisplay();
+    alert('🎉 СЕКРЕТНАЯ КОМАНДА АКТИВИРОВАНА!\n\nВам выдано 1,000,000 монет! 💰');
+  }
+
+  // Обработка нажатия клавиши ' (апостроф) для открытия панели разработчика
+  document.addEventListener('keydown', function(event) {
+    if (event.key === "'" || event.key === "`") { // Апостроф или обратная кавычка
+      event.preventDefault();
+      openDevPanel();
+    }
+
+    // Alt + D тоже открывает панель разработчика
+    if (event.altKey && event.key === 'd') {
+      event.preventDefault();
+      openDevPanel();
+    }
+  });
+
   // Инициализация отображения
   function updateDisplay() {
     scoreElement.textContent = coins + ' монет';
@@ -643,12 +821,19 @@
     cryptoAmountElement.textContent = cryptoAmount;
     boostLevelElement.textContent = boostMultiplier + 'x';
     currentSkinElement.textContent = skins[currentSkin].name;
-    
+
     // Применяем текущий скин
     applySkin(currentSkin);
-    
+
     // Обновляем доступность кнопок
     updateShopButtons();
+
+    // Сохраняем прогресс
+    localStorage.setItem('gameCoins', coins);
+    localStorage.setItem('boostMultiplier', boostMultiplier);
+    localStorage.setItem('currentSkin', currentSkin);
+    localStorage.setItem('ownedSkins', JSON.stringify(ownedSkins));
+    localStorage.setItem('cryptoAmount', cryptoAmount);
   }
 
   // Применение скина
@@ -667,17 +852,17 @@
     document.getElementById('buyBoost10').disabled = coins < 10000;
     document.getElementById('buyBoost25').disabled = coins < 25000;
     document.getElementById('buyBoost50').disabled = coins < 50000;
-    
+
     // Скины
     document.getElementById('buySkinDiamond').disabled = coins < 5000 || ownedSkins.includes('diamond');
     document.getElementById('buySkinRuby').disabled = coins < 8000 || ownedSkins.includes('ruby');
     document.getElementById('buySkinEmerald').disabled = coins < 12000 || ownedSkins.includes('emerald');
     document.getElementById('buySkinBitcoin').disabled = coins < 20000 || ownedSkins.includes('bitcoin');
     document.getElementById('buySkinCrown').disabled = coins < 50000 || ownedSkins.includes('crown');
-    
+
     // Обновляем текст купленных скинов
     updateSkinButtons();
-    
+
     // Рулетка
     spinButton.disabled = coins < 500;
   }
@@ -710,7 +895,6 @@
   // Функция обработки клика
   function handleClick() {
     coins += boostMultiplier;
-    localStorage.setItem('gameCoins', coins);
     updateDisplay();
 
     // Анимация монеты
@@ -777,8 +961,6 @@
     if (coins >= cost) {
       coins -= cost;
       boostMultiplier = multiplier;
-      localStorage.setItem('gameCoins', coins);
-      localStorage.setItem('boostMultiplier', boostMultiplier);
       updateDisplay();
       alert(`🎉 Усилитель ${multiplier}x активирован!`);
     }
@@ -790,8 +972,6 @@
     if (coins >= skinData.price && !ownedSkins.includes(skin)) {
       coins -= skinData.price;
       ownedSkins.push(skin);
-      localStorage.setItem('gameCoins', coins);
-      localStorage.setItem('ownedSkins', JSON.stringify(ownedSkins));
       selectSkin(skin);
       updateDisplay();
       alert(`🎉 Скин "${skinData.name}" куплен и активирован!`);
@@ -802,7 +982,6 @@
   function selectSkin(skin) {
     if (ownedSkins.includes(skin)) {
       currentSkin = skin;
-      localStorage.setItem('currentSkin', skin);
       updateDisplay();
     }
   }
@@ -812,7 +991,6 @@
     if (coins < 500) return;
 
     coins -= 500;
-    localStorage.setItem('gameCoins', coins);
 
     // Выбор приза на основе шансов
     let random = Math.random() * 100;
@@ -833,10 +1011,10 @@
       coins += prize.amount;
       message = `🎉 Вы выиграли ${prize.amount} монет!`;
     } else if (prize.type === 'skin') {
-      const availableSkins = Object.keys(skins).filter(skin => 
+      const availableSkins = Object.keys(skins).filter(skin =>
         skin !== 'default' && !ownedSkins.includes(skin)
       );
-      
+
       if (availableSkins.length > 0) {
         const randomSkin = availableSkins[Math.floor(Math.random() * availableSkins.length)];
         ownedSkins.push(randomSkin);
@@ -853,9 +1031,6 @@
       message = '😔 Повезет в следующий раз!';
     }
 
-    localStorage.setItem('gameCoins', coins);
-    localStorage.setItem('ownedSkins', JSON.stringify(ownedSkins));
-    
     rouletteResult.innerHTML = `<div class="roulette-prize">${message}</div>`;
     updateDisplay();
   }
@@ -866,12 +1041,12 @@
     const change = (Math.random() - 0.5) * 0.1;
     currentPrice = Math.max(0.1, currentPrice + change);
     priceHistory.push(currentPrice);
-    
+
     // Ограничиваем историю 50 точками
     if (priceHistory.length > 50) {
       priceHistory.shift();
     }
-    
+
     localStorage.setItem('priceHistory', JSON.stringify(priceHistory));
     updateChart();
   }
@@ -879,43 +1054,43 @@
   function updateChart() {
     const canvas = document.getElementById('priceChart');
     const ctx = canvas.getContext('2d');
-    
+
     // Устанавливаем размеры canvas
     canvas.width = canvas.offsetWidth;
     canvas.height = canvas.offsetHeight;
-    
+
     // Очищаем canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
+
     // Находим min и max цены для масштабирования
     const minPrice = Math.min(...priceHistory);
     const maxPrice = Math.max(...priceHistory);
     const priceRange = maxPrice - minPrice || 1;
-    
+
     // Рисуем график
     ctx.beginPath();
     ctx.strokeStyle = currentPrice >= priceHistory[priceHistory.length - 2] ? '#4CAF50' : '#f44336';
     ctx.lineWidth = 2;
-    
+
     priceHistory.forEach((price, index) => {
       const x = (index / (priceHistory.length - 1)) * canvas.width;
       const y = canvas.height - ((price - minPrice) / priceRange) * canvas.height;
-      
+
       if (index === 0) {
         ctx.moveTo(x, y);
       } else {
         ctx.lineTo(x, y);
       }
     });
-    
+
     ctx.stroke();
-    
+
     // Обновляем информацию о цене
     const priceChange = ((currentPrice - priceHistory[priceHistory.length - 2]) / priceHistory[priceHistory.length - 2] * 100) || 0;
     document.getElementById('currentPrice').textContent = currentPrice.toFixed(2);
     document.getElementById('priceChange').textContent = priceChange.toFixed(2);
     document.getElementById('priceChange').className = priceChange >= 0 ? 'price-up' : 'price-down';
-    
+
     document.getElementById('cryptoBalance').textContent = cryptoAmount;
     document.getElementById('cryptoValue').textContent = (cryptoAmount * currentPrice).toFixed(2);
   }
@@ -923,12 +1098,10 @@
   function buyCrypto() {
     const amount = parseInt(document.getElementById('tradeAmount').value) || 0;
     const cost = amount * currentPrice;
-    
+
     if (amount > 0 && coins >= cost) {
       coins -= cost;
       cryptoAmount += amount;
-      localStorage.setItem('gameCoins', coins);
-      localStorage.setItem('cryptoAmount', cryptoAmount);
       updateDisplay();
       updateChart();
       alert(`✅ Куплено ${amount} MEC за ${cost.toFixed(2)} монет`);
@@ -939,13 +1112,11 @@
 
   function sellCrypto() {
     const amount = parseInt(document.getElementById('tradeAmount').value) || 0;
-    
+
     if (amount > 0 && cryptoAmount >= amount) {
       const earnings = amount * currentPrice;
       coins += earnings;
       cryptoAmount -= amount;
-      localStorage.setItem('gameCoins', coins);
-      localStorage.setItem('cryptoAmount', cryptoAmount);
       updateDisplay();
       updateChart();
       alert(`✅ Продано ${amount} MEC за ${earnings.toFixed(2)} монет`);
@@ -962,12 +1133,14 @@
   chartButton.addEventListener('click', openChart);
   userAvatarElement.addEventListener('click', openSettings);
   defaultAvatarElement.addEventListener('click', openSettings);
-  
+  closeDevPanel.addEventListener('click', closeDevPanelFunc);
+  devOverlay.addEventListener('click', closeDevPanelFunc);
+
   closeShop.addEventListener('click', closeShopModal);
   closeRoulette.addEventListener('click', closeRouletteModal);
   closeChart.addEventListener('click', closeChartModal);
   closeSettings.addEventListener('click', closeSettingsModal);
-  
+
   spinButton.addEventListener('click', spinRoulette);
   document.getElementById('buyCrypto').addEventListener('click', buyCrypto);
   document.getElementById('sellCrypto').addEventListener('click', sellCrypto);

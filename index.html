@@ -1,1723 +1,330 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MeCoin Retrieval</title>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
-  <style>
-    /* Все предыдущие стили остаются без изменений */
-    body {
-      margin: 0;
-      padding: 20px;
-      font-family: Arial, sans-serif;
-      background: #000000;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      position: relative;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MeCoin - ELITE SHOP</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        html, body {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            background: #000000; overflow: hidden;
+        }
 
-    .user-avatar {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      border: 2px solid #FFD700;
-      cursor: pointer;
-      box-shadow: 0 0 10px rgba(255,215,0,0.5);
-    }
+        body { font-family: 'Segoe UI', Arial, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; position: relative; }
 
-    .container {
-      text-align: center;
-      max-width: 400px;
-      width: 100%;
-    }
+        /* Дизайн аватара */
+        .user-avatar { position: absolute; top: 20px; right: 20px; width: 50px; height: 50px; border-radius: 50%; border: 2px solid #FFD700; cursor: pointer; box-shadow: 0 0 10px rgba(255,215,0,0.5); z-index: 10; background: #111; display: flex; align-items: center; justify-content: center; font-size: 24px; }
 
-    .score {
-      font-size: 48px;
-      font-weight: bold;
-      margin-bottom: 30px;
-      text-shadow: 0 0 10px rgba(255,215,0,0.5);
-      color: #FFD700;
-    }
+        .container { text-align: center; max-width: 400px; width: 90%; }
+        .score { font-size: 42px; font-weight: bold; margin-bottom: 10px; text-shadow: 0 0 10px rgba(255,215,0,0.5); color: #FFD700; }
+        .multiplier-info { font-size: 14px; color: #4CAF50; margin-bottom: 15px; font-weight: bold; }
 
-    .coin-button {
-      width: 200px;
-      height: 200px;
-      border-radius: 50%;
-      background: radial-gradient(circle at 30% 30%, #FFD700, #D4AF37, #B8860B);
-      border: 4px solid #FFD700;
-      cursor: pointer;
-      font-size: 20px;
-      font-weight: bold;
-      color: #8B7500;
-      box-shadow:
-        0 0 30px rgba(255,215,0,0.5),
-        inset 0 0 20px rgba(255,255,255,0.3);
-      transition: all 0.1s ease;
-      margin-bottom: 30px;
-      position: relative;
-      overflow: hidden;
-    }
+        /* КНОПКА МОНЕТЫ И СКИНЫ */
+        .coin-button { width: 180px; height: 180px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, #FFD700, #D4AF37, #B8860B); border: 4px solid #FFD700; cursor: pointer; transition: all 0.1s ease; margin: 0 auto 25px auto; position: relative; outline: none; display: block; }
+        .coin-button:after { content: '₿'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 60px; color: #8B7500; }
 
-    .coin-button:before {
-      content: '';
-      position: absolute;
-      top: 10%;
-      left: 10%;
-      right: 10%;
-      bottom: 10%;
-      background: radial-gradient(ellipse at center, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 70%);
-      border-radius: 50%;
-    }
+        /* Стили скинов */
+        .coin-button.skin-silver { background: radial-gradient(circle at 30% 30%, #e0e0e0, #9e9e9e, #424242); border-color: #e0e0e0; }
+        .coin-button.skin-silver:after { content: '🥈'; color: #333; }
 
-    .coin-button:after {
-      content: '₿';
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      font-size: 60px;
-      color: #8B7500;
-      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-    }
+        .coin-button.skin-diamond { background: radial-gradient(circle at 30% 30%, #b9f2ff, #2196F3, #0d47a1); border-color: #b9f2ff; box-shadow: 0 0 20px rgba(185,242,255,0.5); }
+        .coin-button.skin-diamond:after { content: '💎'; }
 
-    .coin-button.diamond:after { content: '💎'; color: #b9f2ff; }
-    .coin-button.ruby:after { content: '🔴'; color: #e0115f; }
-    .coin-button.emerald:after { content: '💚'; color: #50c878; }
-    .coin-button.bitcoin:after { content: '₿'; color: #ff9900; }
-    .coin-button.crown:after { content: '👑'; color: #ffd700; }
+        .coin-button.skin-emerald { background: radial-gradient(circle at 30% 30%, #a2f2a5, #4CAF50, #1b5e20); border-color: #a2f2a5; }
+        .coin-button.skin-emerald:after { content: '🌿'; }
 
-    .coin-button:active {
-      transform: scale(0.95) rotate(5deg);
-      box-shadow:
-        0 0 15px rgba(255,215,0,0.3),
-        inset 0 0 10px rgba(255,255,255,0.2);
-    }
+        .coin-button.skin-ruby { background: radial-gradient(circle at 30% 30%, #ff8a80, #f44336, #b71c1c); border-color: #ff8a80; }
+        .coin-button.skin-ruby:after { content: '🔥'; }
 
-    .stats {
-      background: rgba(255,255,255,0.1);
-      padding: 20px;
-      border-radius: 15px;
-      backdrop-filter: blur(10px);
-      margin-top: 20px;
-      border: 1px solid rgba(255,215,0,0.3);
-    }
+        .coin-button:active { transform: scale(0.92) rotate(5deg); }
 
-    .stats p {
-      margin: 10px 0;
-      font-size: 18px;
-      color: #FFD700;
-    }
+        .stats { background: rgba(255,255,255,0.08); padding: 15px; border-radius: 15px; backdrop-filter: blur(10px); margin-top: 15px; border: 1px solid rgba(255,215,0,0.2); width: 100%; }
+        .stats p { margin: 8px 0; font-size: 14px; color: #FFD700; display: flex; justify-content: space-between; }
+        .stats span { color: white; font-weight: bold; }
 
-    h1 {
-      margin-bottom: 30px;
-      text-shadow: 0 0 10px rgba(255,215,0,0.5);
-      color: #FFD700;
-      font-size: 28px;
-    }
+        .buttons-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; margin: 15px 0; }
 
-    .reset-button {
-      background: linear-gradient(145deg, #FFD700, #D4AF37);
-      border: none;
-      color: #000;
-      padding: 12px 24px;
-      border-radius: 25px;
-      cursor: pointer;
-      font-size: 16px;
-      font-weight: bold;
-      margin-top: 15px;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 15px rgba(255,215,0,0.3);
-    }
+        button { border: 1px solid #333; color: white; padding: 12px; border-radius: 15px; cursor: pointer; font-size: 13px; font-weight: bold; transition: 0.3s; width: 100%; background: #111; }
+        button:active { background: #222; transform: scale(0.98); }
 
-    .reset-button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(255,215,0,0.4);
-    }
+        .create-btn { background: linear-gradient(to right, #FFD700, #FFA500); color: black; grid-column: span 2; border: none; }
 
-    .stats span {
-      color: white;
-      font-weight: bold;
-    }
+        /* МОДАЛКИ */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 100; overflow-y: auto; padding-top: 50px; }
+        .modal-content { background: #0a0a0a; padding: 25px; border-radius: 20px; border: 1px solid #333; width: 85%; max-width: 350px; margin: 0 auto; text-align: center; }
 
-    .shop-button {
-      background: linear-gradient(145deg, #4CAF50, #45a049);
-      border: none;
-      color: white;
-      padding: 12px 24px;
-      border-radius: 25px;
-      cursor: pointer;
-      font-size: 16px;
-      font-weight: bold;
-      margin: 10px;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 15px rgba(76,175,80,0.3);
-    }
+        .shop-section { margin-bottom: 20px; text-align: left; }
+        .shop-section h4 { border-bottom: 1px solid #333; padding-bottom: 5px; color: #FFD700; margin-bottom: 10px; }
+        .shop-item { display: flex; justify-content: space-between; align-items: center; background: #151515; padding: 10px; border-radius: 10px; margin-bottom: 8px; border: 1px solid #222; }
+        .shop-item span { font-size: 12px; }
+        .buy-mini-btn { width: auto; padding: 5px 12px; font-size: 11px; border-color: #4CAF50; color: #4CAF50; }
 
-    .roulette-button {
-      background: linear-gradient(145deg, #9C27B0, #7B1FA2);
-      border: none;
-      color: white;
-      padding: 12px 24px;
-      border-radius: 25px;
-      cursor: pointer;
-      font-size: 16px;
-      font-weight: bold;
-      margin: 10px;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 15px rgba(156,39,176,0.3);
-    }
+        .chart-container { width: 100%; height: 160px; background: #000; border-radius: 10px; margin: 10px 0; border: 1px solid #222; }
+        canvas { width: 100%; height: 100%; }
 
-    .chart-button {
-      background: linear-gradient(145deg, #2196F3, #1976D2);
-      border: none;
-      color: white;
-      padding: 12px 24px;
-      border-radius: 25px;
-      cursor: pointer;
-      font-size: 16px;
-      font-weight: bold;
-      margin: 10px;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 15px rgba(33,150,243,0.3);
-    }
-
-    .referral-button {
-      background: linear-gradient(145deg, #FF9800, #F57C00);
-      border: none;
-      color: white;
-      padding: 12px 24px;
-      border-radius: 25px;
-      cursor: pointer;
-      font-size: 16px;
-      font-weight: bold;
-      margin: 10px;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 15px rgba(255,152,0,0.3);
-    }
-
-    .shop-button:hover, .roulette-button:hover, .chart-button:hover, .referral-button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(0,0,0,0.4);
-    }
-
-    .modal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.8);
-      z-index: 1000;
-      backdrop-filter: blur(5px);
-    }
-
-    .modal-content {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: #1a1a1a;
-      padding: 30px;
-      border-radius: 20px;
-      border: 2px solid #FFD700;
-      max-width: 350px;
-      width: 90%;
-      text-align: center;
-      max-height: 80vh;
-      overflow-y: auto;
-    }
-
-    .close-button {
-      position: absolute;
-      top: 10px;
-      right: 15px;
-      font-size: 24px;
-      color: #FFD700;
-      cursor: pointer;
-      background: none;
-      border: none;
-    }
-
-    .shop-item {
-      background: rgba(255,255,255,0.1);
-      padding: 15px;
-      margin: 10px 0;
-      border-radius: 10px;
-      border: 1px solid rgba(255,215,0,0.3);
-    }
-
-    .buy-button {
-      background: linear-gradient(145deg, #FFD700, #D4AF37);
-      border: none;
-      color: #000;
-      padding: 8px 16px;
-      border-radius: 15px;
-      cursor: pointer;
-      font-size: 14px;
-      font-weight: bold;
-      margin-top: 8px;
-      transition: all 0.3s ease;
-    }
-
-    .buy-button:disabled {
-      background: #666;
-      cursor: not-allowed;
-    }
-
-    .buy-button:hover:not(:disabled) {
-      transform: translateY(-2px);
-    }
-
-    .boost-info {
-      font-size: 14px;
-      color: #aaa;
-      margin-top: 5px;
-    }
-
-    .buttons-row {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-      margin: 15px 0;
-      flex-wrap: wrap;
-    }
-
-    .skin-preview {
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      margin: 5px auto;
-      border: 2px solid #FFD700;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 24px;
-    }
-
-    .roulette-prize {
-      font-size: 24px;
-      margin: 10px 0;
-      padding: 10px;
-      background: rgba(255,215,0,0.2);
-      border-radius: 10px;
-      border: 1px solid #FFD700;
-    }
-
-    .owned {
-      color: #4CAF50;
-      font-weight: bold;
-    }
-
-    /* Стили для графика */
-    .chart-container {
-      width: 100%;
-      height: 200px;
-      background: rgba(255,255,255,0.05);
-      border-radius: 10px;
-      margin: 15px 0;
-      padding: 10px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .chart-canvas {
-      width: 100%;
-      height: 100%;
-    }
-
-    .chart-info {
-      display: flex;
-      justify-content: space-between;
-      margin: 10px 0;
-      font-size: 14px;
-    }
-
-    .trade-buttons {
-      display: flex;
-      gap: 10px;
-      justify-content: center;
-      margin: 15px 0;
-    }
-
-    .buy-crypto-button {
-      background: linear-gradient(145deg, #4CAF50, #45a049);
-      border: none;
-      color: white;
-      padding: 10px 20px;
-      border-radius: 10px;
-      cursor: pointer;
-      font-weight: bold;
-    }
-
-    .sell-crypto-button {
-      background: linear-gradient(145deg, #f44336, #d32f2f);
-      border: none;
-      color: white;
-      padding: 10px 20px;
-      border-radius: 10px;
-      cursor: pointer;
-      font-weight: bold;
-    }
-
-    .price-up {
-      color: #4CAF50;
-    }
-
-    .price-down {
-      color: #f44336;
-    }
-
-    .settings-item {
-      margin: 15px 0;
-      text-align: left;
-    }
-
-    .settings-item label {
-      display: block;
-      margin-bottom: 5px;
-      color: #FFD700;
-    }
-
-    .settings-item input {
-      width: 100%;
-      padding: 8px;
-      border-radius: 5px;
-      border: 1px solid #FFD700;
-      background: rgba(255,255,255,0.1);
-      color: white;
-    }
-
-    /* Стили для панели разработчика */
-    .dev-panel {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: #2d2d2d;
-      padding: 20px;
-      border-radius: 10px;
-      border: 2px solid #FFD700;
-      z-index: 1001;
-      display: none;
-      max-width: 400px;
-      width: 90%;
-      box-shadow: 0 0 30px rgba(255,215,0,0.5);
-    }
-
-    .dev-panel h3 {
-      color: #FFD700;
-      margin-bottom: 15px;
-      text-align: center;
-    }
-
-    .dev-command {
-      background: #1a1a1a;
-      padding: 10px;
-      border-radius: 5px;
-      margin: 10px 0;
-      border: 1px solid #FFD700;
-    }
-
-    .dev-input {
-      width: 100%;
-      padding: 8px;
-      border-radius: 5px;
-      border: 1px solid #FFD700;
-      background: rgba(255,255,255,0.1);
-      color: white;
-      margin: 10px 0;
-    }
-
-    .dev-button {
-      background: linear-gradient(145deg, #FFD700, #D4AF37);
-      border: none;
-      color: #000;
-      padding: 10px 20px;
-      border-radius: 5px;
-      cursor: pointer;
-      font-weight: bold;
-      margin: 5px;
-      width: 100%;
-    }
-
-    .dev-close {
-      position: absolute;
-      top: 5px;
-      right: 10px;
-      background: none;
-      border: none;
-      color: #FFD700;
-      font-size: 20px;
-      cursor: pointer;
-    }
-
-    .dev-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.8);
-      z-index: 1000;
-      display: none;
-    }
-
-    /* Новые стили для онлайн графика */
-    .online-status {
-      position: absolute;
-      top: 20px;
-      left: 20px;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      font-size: 12px;
-    }
-
-    .online-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: #4CAF50;
-      animation: pulse 2s infinite;
-    }
-
-    .online-dot.offline {
-      background: #f44336;
-    }
-
-    @keyframes pulse {
-      0% { opacity: 1; }
-      50% { opacity: 0.5; }
-      100% { opacity: 1; }
-    }
-
-    .global-stats {
-      background: rgba(255,255,255,0.05);
-      padding: 10px;
-      border-radius: 10px;
-      margin: 10px 0;
-      font-size: 12px;
-    }
-
-    /* Новые стили для рефералов и создания монет */
-    .referral-link {
-      background: rgba(255,255,255,0.1);
-      padding: 10px;
-      border-radius: 10px;
-      margin: 10px 0;
-      word-break: break-all;
-      border: 1px solid #FF9800;
-    }
-
-    .referral-stats {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin: 15px 0;
-    }
-
-    .referral-stat {
-      background: rgba(255,255,255,0.05);
-      padding: 10px;
-      border-radius: 8px;
-      text-align: center;
-    }
-
-    .custom-coin-item {
-      background: rgba(255,255,255,0.1);
-      padding: 15px;
-      margin: 10px 0;
-      border-radius: 10px;
-      border: 1px solid #2196F3;
-    }
-
-    .coin-creator {
-      background: rgba(255,255,255,0.1);
-      padding: 15px;
-      margin: 10px 0;
-      border-radius: 10px;
-      border: 1px solid #9C27B0;
-    }
-
-    .progress-bar {
-      width: 100%;
-      height: 10px;
-      background: rgba(255,255,255,0.1);
-      border-radius: 5px;
-      margin: 10px 0;
-      overflow: hidden;
-    }
-
-    .progress-fill {
-      height: 100%;
-      background: linear-gradient(90deg, #FFD700, #FF9800);
-      border-radius: 5px;
-      transition: width 0.3s ease;
-    }
-
-    /* Исправления для полей ввода */
-    input:focus {
-      outline: 2px solid #FFD700;
-      outline-offset: 2px;
-    }
-
-    textarea:focus {
-      outline: 2px solid #FFD700;
-      outline-offset: 2px;
-    }
-
-    /* Запрещаем обработку событий для полей ввода */
-    .input-field {
-      pointer-events: auto !important;
-    }
-
-    .input-field * {
-      pointer-events: auto !important;
-    }
-  </style>
+        .trade-input { width: 100%; padding: 10px; margin: 10px 0; background: #111; border: 1px solid #333; color: white; border-radius: 10px; text-align: center; font-size: 18px; }
+        .coin-selector { width: 100%; padding: 12px; background: #111; color: #FFD700; border: 1px solid #FFD700; border-radius: 10px; margin-bottom: 10px; font-weight: bold; }
+    </style>
 </head>
 <body>
+
+<div class="user-avatar" id="avatar">👤</div>
+
 <div class="container">
-  <!-- Онлайн статус -->
-  <div class="online-status">
-    <div class="online-dot" id="onlineDot"></div>
-    <span id="onlineStatus">Загрузка...</span>
-  </div>
+    <div class="score" id="score">0 🪙</div>
+    <div class="multiplier-info" id="multInfo">Сила клика: x1</div>
+    <button class="coin-button" id="mainButton"></button>
 
-  <!-- Аватарка пользователя -->
-  <img src="" class="user-avatar" id="userAvatar" style="display: none;">
-  <div class="user-avatar" id="defaultAvatar" style="background: #FFD700; display: flex; align-items: center; justify-content: center; font-size: 24px;">👤</div>
+    <div class="buttons-grid">
+        <button onclick="openModal('shopModal')" style="border-color: #4CAF50;">🛒 Магазин</button>
+        <button onclick="openModal('rouletteModal')" style="border-color: #9C27B0;">🎰 Рулетка</button>
+        <button onclick="openExchange()" style="border-color: #2196F3; color: #2196F3;">📈 Биржа</button>
+        <button onclick="openModal('refModal')">👥 Реф</button>
+        <button class="create-btn" onclick="openModal('createCoinModal')">💎 СОЗДАТЬ СВОЮ МОНЕТУ (2M)</button>
+    </div>
 
-  <h1>MeCoin Retrieval</h1>
-
-  <div class="score" id="score">0 монет</div>
-
-  <button class="coin-button" id="tapButton"></button>
-
-  <div class="buttons-row">
-    <button class="shop-button" id="shopButton">🛒 Магазин</button>
-    <button class="roulette-button" id="rouletteButton">🎰 Рулетка</button>
-    <button class="chart-button" id="chartButton">📈 График</button>
-    <button class="referral-button" id="referralButton">👥 Рефералы</button>
-    <button class="reset-button" id="resetButton">Сбросить</button>
-  </div>
-
-  <div class="stats">
-    <p>Усилитель: <span id="boostLevel">1x</span></p>
-    <p>Монетки: <span id="coins">0</span> 🪙</p>
-    <p>Крипта: <span id="cryptoAmount">0</span> MEC</p>
-    <p>Текущий скин: <span id="currentSkin">Обычный</span></p>
-    <p>Рефералы: <span id="referralCount">0</span>/10</p>
-  </div>
+    <div class="stats">
+        <p>Биржа: <span id="currentCoinDisplay">MEC ✅</span></p>
+        <p>Курс: <span id="priceVal">1.00</span> $</p>
+        <p>Ваши активы: <span id="myMec">0</span></p>
+    </div>
 </div>
 
-<!-- Модальное окно магазина -->
-<div class="modal" id="shopModal">
-  <div class="modal-content">
-    <button class="close-button" id="closeShop">&times;</button>
-    <h2>🛒 Магазин</h2>
+<div id="shopModal" class="modal">
+    <div class="modal-content">
+        <h3 style="color:#4CAF50">Магазин ELITE</h3>
 
-    <h3>⚡ Усилители</h3>
-    <div class="shop-item">
-      <h4>Усилитель x2</h4>
-      <p>Дает 2 монетки за клик</p>
-      <p class="boost-info">Цена: 1,000 🪙</p>
-      <button class="buy-button" id="buyBoost2">Купить за 1,000 🪙</button>
-    </div>
+        <div class="shop-section">
+            <h4>🚀 Бусты (Клик)</h4>
+            <div class="shop-item"><span>Множитель x2</span><button class="buy-mini-btn" onclick="buyItem('boost', 2, 1500)">1.5k</button></div>
+            <div class="shop-item"><span>Множитель x5</span><button class="buy-mini-btn" onclick="buyItem('boost', 5, 10000)">10k</button></div>
+            <div class="shop-item"><span>Множитель x10</span><button class="buy-mini-btn" onclick="buyItem('boost', 10, 50000)">50k</button></div>
+            <div class="shop-item"><span>Множитель x50</span><button class="buy-mini-btn" onclick="buyItem('boost', 50, 500000)">500k</button></div>
+        </div>
 
-    <div class="shop-item">
-      <h4>Усилитель x5</h4>
-      <p>Дает 5 монеток за клик</p>
-      <p class="boost-info">Цена: 5,000 🪙</p>
-      <button class="buy-button" id="buyBoost5">Купить за 5,000 🪙</button>
-    </div>
+        <div class="shop-section">
+            <h4>🎨 Скины монеты</h4>
+            <div class="shop-item"><span>Серебро</span><button class="buy-mini-btn" onclick="buyItem('skin', 'silver', 5000)">5k</button></div>
+            <div class="shop-item"><span>Изумруд</span><button class="buy-mini-btn" onclick="buyItem('skin', 'emerald', 25000)">25k</button></div>
+            <div class="shop-item"><span>Рубин</span><button class="buy-mini-btn" onclick="buyItem('skin', 'ruby', 100000)">100k</button></div>
+            <div class="shop-item"><span>Алмаз</span><button class="buy-mini-btn" onclick="buyItem('skin', 'diamond', 1000000)">1M</button></div>
+        </div>
 
-    <div class="shop-item">
-      <h4>Усилитель x10</h4>
-      <p>Дает 10 монеток за клик</p>
-      <p class="boost-info">Цена: 10,000 🪙</p>
-      <button class="buy-button" id="buyBoost10">Купить за 10,000 🪙</button>
+        <button onclick="closeModal('shopModal')" style="margin-top:10px; border:none; color:gray;">Закрыть</button>
     </div>
-
-    <div class="shop-item">
-      <h4>Усилитель x25</h4>
-      <p>Дает 25 монеток за клик</p>
-      <p class="boost-info">Цена: 25,000 🪙</p>
-      <button class="buy-button" id="buyBoost25">Купить за 25,000 🪙</button>
-    </div>
-
-    <div class="shop-item">
-      <h4>Усилитель x50</h4>
-      <p>Дает 50 монеток за клик</p>
-      <p class="boost-info">Цена: 50,000 🪙</p>
-      <button class="buy-button" id="buyBoost50">Купить за 50,000 🪙</button>
-    </div>
-
-    <h3>🎨 Скины</h3>
-    <div class="shop-item">
-      <div class="skin-preview" style="background: radial-gradient(circle at 30% 30%, #b9f2ff, #0890ff, #0055ff);">💎</div>
-      <h4>Алмазный скин</h4>
-      <p class="boost-info">Цена: 5,000 🪙</p>
-      <button class="buy-button" id="buySkinDiamond">Купить за 5,000 🪙</button>
-    </div>
-
-    <div class="shop-item">
-      <div class="skin-preview" style="background: radial-gradient(circle at 30% 30%, #ff6b6b, #e0115f, #8b0000);">🔴</div>
-      <h4>Рубиновый скин</h4>
-      <p class="boost-info">Цена: 8,000 🪙</p>
-      <button class="buy-button" id="buySkinRuby">Купить за 8,000 🪙</button>
-    </div>
-
-    <div class="shop-item">
-      <div class="skin-preview" style="background: radial-gradient(circle at 30% 30%, #50c878, #228b22, #006400);">💚</div>
-      <h4>Изумрудный скин</h4>
-      <p class="boost-info">Цена: 12,000 🪙</p>
-      <button class="buy-button" id="buySkinEmerald">Купить за 12,000 🪙</button>
-    </div>
-
-    <div class="shop-item">
-      <div class="skin-preview" style="background: radial-gradient(circle at 30% 30%, #ff9900, #ff6600, #cc5500);">₿</div>
-      <h4>Биткоин скин</h4>
-      <p class="boost-info">Цена: 20,000 🪙</p>
-      <button class="buy-button" id="buySkinBitcoin">Купить за 20,000 🪙</button>
-    </div>
-
-    <div class="shop-item">
-      <div class="skin-preview" style="background: radial-gradient(circle at 30% 30%, #ffd700, #ffa500, #ff8c00);">👑</div>
-      <h4>Королевский скин</h4>
-      <p class="boost-info">Цена: 50,000 🪙</p>
-      <button class="buy-button" id="buySkinCrown">Купить за 50,000 🪙</button>
-    </div>
-
-    <h3>💰 Создать свою монету</h3>
-    <div class="coin-creator">
-      <h4>🎨 Создать свою монету</h4>
-      <p>Создай свою криптовалюту и получай доход когда другие игроки покупают ее!</p>
-      <p class="boost-info">Цена создания: 900,000 🪙</p>
-      <input type="text" id="coinName" placeholder="Название монеты (3-10 символов)" maxlength="10" style="width: 100%; padding: 8px; margin: 10px 0; border-radius: 5px; border: 1px solid #FFD700; background: rgba(255,255,255,0.1); color: white;" class="input-field">
-      <input type="text" id="coinSymbol" placeholder="Символ (1-3 символа)" maxlength="3" style="width: 100%; padding: 8px; margin: 10px 0; border-radius: 5px; border: 1px solid #FFD700; background: rgba(255,255,255,0.1); color: white;" class="input-field">
-      <button class="buy-button" id="createCoin">Создать за 900,000 🪙</button>
-    </div>
-  </div>
 </div>
 
-<!-- Модальное окно рулетки -->
-<div class="modal" id="rouletteModal">
-  <div class="modal-content">
-    <button class="close-button" id="closeRoulette">&times;</button>
-    <h2>🎰 Рулетка</h2>
-    <p>Стоимость спина: 500 🪙</p>
-    <p>Шанс выигрыша скина: 10%</p>
-
-    <button class="roulette-button" id="spinButton" style="font-size: 20px; padding: 15px 30px;">🎰 Крутить рулетку!</button>
-
-    <div id="rouletteResult"></div>
-  </div>
+<div id="chartModal" class="modal">
+    <div class="modal-content">
+        <h3>Крипто-Биржа</h3>
+        <select id="coinSelect" class="coin-selector" onchange="changeCoin(this.value)"></select>
+        <div class="chart-container"><canvas id="canvas" width="300" height="160"></canvas></div>
+        <p>Цена: <span id="modalPrice">1.00</span> $</p>
+        <input type="number" id="tradeAmount" class="trade-input" value="1" min="1">
+        <div style="display: flex; gap: 10px;">
+            <button onclick="tradeAction('buy')" style="border-color: #4CAF50; color: #4CAF50;">КУПИТЬ</button>
+            <button onclick="tradeAction('sell')" style="border-color: #f44336; color: #f44336;">ПРОДАТЬ</button>
+        </div>
+        <button onclick="closeModal('chartModal')" style="margin-top:15px; border:none; color:gray;">Закрыть</button>
+    </div>
 </div>
 
-<!-- Модальное окно графика -->
-<div class="modal" id="chartModal">
-  <div class="modal-content">
-    <button class="close-button" id="closeChart">&times;</button>
-    <h2>📈 Глобальный график MEC/USD</h2>
-
-    <div class="global-stats">
-      <div>👥 Онлайн игроков: <span id="onlinePlayers">0</span></div>
-      <div>💰 Игроков с монетами: <span id="playersWithCoins">0</span></div>
-      <div>🕒 Последнее обновление: <span id="lastUpdate">-</span></div>
+<div id="rouletteModal" class="modal">
+    <div class="modal-content">
+        <h3>🎰 Испытай удачу</h3>
+        <div id="rouletteResult" style="font-size:32px; margin:20px;">💰</div>
+        <button onclick="spinRoulette()" style="border-color: #9C27B0; color: #9C27B0;">Крутить (500)</button>
+        <p style="font-size: 10px; color: gray; margin-top: 10px;">Шанс на Джекпот (50k): 2%</p>
+        <button onclick="closeModal('rouletteModal')" style="margin-top:20px; border:none;">Закрыть</button>
     </div>
-
-    <div class="chart-info">
-      <div>Текущая цена: <span id="currentPrice">1.00</span> USD</div>
-      <div>Изменение: <span id="priceChange">0.00</span>%</div>
-    </div>
-
-    <div class="chart-container">
-      <canvas id="priceChart" class="chart-canvas"></canvas>
-    </div>
-
-    <div class="chart-info">
-      <div>Ваш баланс: <span id="cryptoBalance">0</span> MEC</div>
-      <div>Стоимость: <span id="cryptoValue">0.00</span> USD</div>
-    </div>
-
-    <div class="trade-buttons">
-      <button class="buy-crypto-button" id="buyCrypto">Купить MEC</button>
-      <button class="sell-crypto-button" id="sellCrypto">Продать MEC</button>
-    </div>
-
-    <div style="margin-top: 15px;">
-      <input type="number" id="tradeAmount" placeholder="Количество MEC" min="1" style="width: 100%; padding: 8px; border-radius: 5px; border: 1px solid #FFD700; background: rgba(255,255,255,0.1); color: white;" class="input-field">
-    </div>
-
-    <h3 style="margin-top: 20px;">🪙 Пользовательские монеты</h3>
-    <div id="customCoinsList"></div>
-  </div>
 </div>
 
-<!-- Модальное окно рефералов -->
-<div class="modal" id="referralModal">
-  <div class="modal-content">
-    <button class="close-button" id="closeReferral">&times;</button>
-    <h2>👥 Реферальная система</h2>
-
-    <div class="referral-stats">
-      <div class="referral-stat">
-        <div style="font-size: 24px;">🎯</div>
-        <div>Приглашено</div>
-        <div style="font-size: 18px; font-weight: bold;" id="referralInvited">0</div>
-      </div>
-      <div class="referral-stat">
-        <div style="font-size: 24px;">💰</div>
-        <div>До бонуса</div>
-        <div style="font-size: 18px; font-weight: bold;" id="referralRemaining">10</div>
-      </div>
+<div id="createCoinModal" class="modal">
+    <div class="modal-content">
+        <h2>Новый Токен</h2>
+        <input type="text" id="newCoinName" class="trade-input" placeholder="TICKER (3-5 букв)" maxlength="5">
+        <button class="create-btn" onclick="createNewToken()">ЗАПУСТИТЬ ICO (2M)</button>
+        <button onclick="closeModal('createCoinModal')" style="margin-top:10px; border:none;">Отмена</button>
     </div>
-
-    <div class="progress-bar">
-      <div class="progress-fill" id="referralProgress" style="width: 0%"></div>
-    </div>
-
-    <p>Пригласи 10 разных игроков и получи <strong>25,000 🪙</strong> бонуса!</p>
-
-    <div class="referral-link">
-      <strong>Ваша реферальная ссылка:</strong><br>
-      <span id="referralLink">Загрузка...</span>
-    </div>
-
-    <button class="buy-button" onclick="copyReferralLink()" style="margin-top: 10px;">📋 Скопировать ссылку</button>
-
-    <div class="shop-item" style="margin-top: 20px;">
-      <h4>🎁 Бонус за рефералов</h4>
-      <p>Получи 25,000 монет когда 10 разных игроков зайдут по вашей ссылке!</p>
-      <p class="boost-info">Текущий прогресс: <span id="referralProgressText">0/10</span></p>
-    </div>
-  </div>
 </div>
 
-<!-- Модальное окно настроек -->
-<div class="modal" id="settingsModal">
-  <div class="modal-content">
-    <button class="close-button" id="closeSettings">&times;</button>
-    <h2>⚙️ Настройки</h2>
-
-    <div class="settings-item">
-      <label>Звуки:</label>
-      <input type="checkbox" id="soundEnabled" checked class="input-field">
-    </div>
-
-    <div class="settings-item">
-      <label>Вибрация:</label>
-      <input type="checkbox" id="vibrationEnabled" checked class="input-field">
-    </div>
-
-    <div class="settings-item">
-      <label>Авто-сохранение:</label>
-      <input type="checkbox" id="autoSaveEnabled" checked class="input-field">
-    </div>
-
-    <div class="settings-item">
-      <label>Онлайн график:</label>
-      <input type="checkbox" id="onlineChartEnabled" checked class="input-field">
-    </div>
-
-    <button class="reset-button" onclick="resetGame()" style="margin-top: 20px;">Сбросить весь прогресс</button>
-  </div>
-</div>
-
-<!-- Панель разработчика -->
-<div class="dev-overlay" id="devOverlay"></div>
-<div class="dev-panel" id="devPanel">
-  <button class="dev-close" id="closeDevPanel">&times;</button>
-  <h3>🔧 Панель разработчика</h3>
-  
-  <input type="text" class="dev-input input-field" id="devCommand" placeholder="Введите команду...">
-  <button class="dev-button" onclick="executeDevCommand()">Выполнить команду</button>
-</div>
+<div id="refModal" class="modal"><div class="modal-content"><h3>Рефералы</h3><p>Приглашай друзей и получай 10% от их кликов!</p><input type="text" id="refLink" readonly class="trade-input" style="color:orange;"><button onclick="closeModal('refModal')" style="margin-top:20px; border:none;">Закрыть</button></div></div>
 
 <script>
-  // Конфигурация Firebase
-  const firebaseConfig = {
-    apiKey: "AIzaSyC4wGkQwSsx3gC3V3p3V3p3V3p3V3p3V3p3V3",
-    authDomain: "mecoin-game.firebaseapp.com",
-    databaseURL: "https://mecoin-game-default-rtdb.firebaseio.com",
-    projectId: "mecoin-game",
-    storageBucket: "mecoin-game.appspot.com",
-    messagingSenderId: "123456789012",
-    appId: "1:123456789012:web:abcdef123456"
-  };
+    // --- ДАННЫЕ (LOCAL STORAGE) ---
+    let coins = parseFloat(localStorage.getItem('coins')) || 0;
+    let boost = parseInt(localStorage.getItem('boost')) || 1;
+    let currentSkin = localStorage.getItem('currentSkin') || 'gold';
+    let myBalances = JSON.parse(localStorage.getItem('balances')) || { "MEC": 0 };
 
-  // Инициализация Firebase
-  try {
-    firebase.initializeApp(firebaseConfig);
-    var database = firebase.database();
-  } catch (error) {
-    console.log('Firebase не доступен, используется локальный режим');
-  }
-
-  // Инициализация Telegram Web App
-  const tg = window.Telegram.WebApp;
-  tg.expand();
-  tg.ready();
-
-  // Загрузка аватарки пользователя
-  const userAvatar = document.getElementById('userAvatar');
-  const defaultAvatar = document.getElementById('defaultAvatar');
-
-  if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
-    const user = tg.initDataUnsafe.user;
-    if (user.photo_url) {
-      userAvatar.src = user.photo_url;
-      userAvatar.style.display = 'block';
-      defaultAvatar.style.display = 'none';
-    }
-  }
-
-  // Переменные игры
-  let coins = parseInt(localStorage.getItem('gameCoins')) || 0;
-  let boostMultiplier = parseInt(localStorage.getItem('boostMultiplier')) || 1;
-  let currentSkin = localStorage.getItem('currentSkin') || 'default';
-  let ownedSkins = JSON.parse(localStorage.getItem('ownedSkins')) || ['default'];
-  let cryptoAmount = parseInt(localStorage.getItem('cryptoAmount')) || 0;
-
-  // Переменные для рефералов
-  let referralCount = parseInt(localStorage.getItem('referralCount')) || 0;
-  let referralCode = localStorage.getItem('referralCode') || generateReferralCode();
-  let referralBonusClaimed = localStorage.getItem('referralBonusClaimed') === 'true';
-
-  // Переменные для онлайн графика
-  let priceHistory = JSON.parse(localStorage.getItem('priceHistory')) || [1.00];
-  let currentPrice = priceHistory[priceHistory.length - 1];
-  let onlineChartEnabled = localStorage.getItem('onlineChartEnabled') !== 'false';
-  let userId = 'user_' + Math.random().toString(36).substr(2, 9);
-
-  // Переменные для пользовательских монет
-  let customCoins = JSON.parse(localStorage.getItem('customCoins')) || {};
-
-  // Элементы DOM
-  const scoreElement = document.getElementById('score');
-  const tapButton = document.getElementById('tapButton');
-  const coinsElement = document.getElementById('coins');
-  const cryptoAmountElement = document.getElementById('cryptoAmount');
-  const boostLevelElement = document.getElementById('boostLevel');
-  const currentSkinElement = document.getElementById('currentSkin');
-  const referralCountElement = document.getElementById('referralCount');
-  const resetButton = document.getElementById('resetButton');
-  const shopButton = document.getElementById('shopButton');
-  const rouletteButton = document.getElementById('rouletteButton');
-  const chartButton = document.getElementById('chartButton');
-  const referralButton = document.getElementById('referralButton');
-  const shopModal = document.getElementById('shopModal');
-  const rouletteModal = document.getElementById('rouletteModal');
-  const chartModal = document.getElementById('chartModal');
-  const referralModal = document.getElementById('referralModal');
-  const settingsModal = document.getElementById('settingsModal');
-  const closeShop = document.getElementById('closeShop');
-  const closeRoulette = document.getElementById('closeRoulette');
-  const closeChart = document.getElementById('closeChart');
-  const closeReferral = document.getElementById('closeReferral');
-  const closeSettings = document.getElementById('closeSettings');
-  const spinButton = document.getElementById('spinButton');
-  const rouletteResult = document.getElementById('rouletteResult');
-  const userAvatarElement = document.getElementById('userAvatar');
-  const defaultAvatarElement = document.getElementById('defaultAvatar');
-  const onlineDot = document.getElementById('onlineDot');
-  const onlineStatus = document.getElementById('onlineStatus');
-  const onlinePlayers = document.getElementById('onlinePlayers');
-  const playersWithCoins = document.getElementById('playersWithCoins');
-  const lastUpdate = document.getElementById('lastUpdate');
-  const referralLink = document.getElementById('referralLink');
-  const referralInvited = document.getElementById('referralInvited');
-  const referralRemaining = document.getElementById('referralRemaining');
-  const referralProgress = document.getElementById('referralProgress');
-  const referralProgressText = document.getElementById('referralProgressText');
-  const customCoinsList = document.getElementById('customCoinsList');
-  const createCoinButton = document.getElementById('createCoin');
-
-  // Элементы панели разработчика
-  const devPanel = document.getElementById('devPanel');
-  const devOverlay = document.getElementById('devOverlay');
-  const closeDevPanel = document.getElementById('closeDevPanel');
-  const devCommand = document.getElementById('devCommand');
-
-  // Скины
-  const skins = {
-    'default': { name: 'Обычный', class: '', price: 0 },
-    'diamond': { name: 'Алмазный', class: 'diamond', price: 5000 },
-    'ruby': { name: 'Рубиновый', class: 'ruby', price: 8000 },
-    'emerald': { name: 'Изумрудный', class: 'emerald', price: 12000 },
-    'bitcoin': { name: 'Биткоин', class: 'bitcoin', price: 20000 },
-    'crown': { name: 'Королевский', class: 'crown', price: 50000 }
-  };
-
-  // Призы рулетки
-  const roulettePrizes = [
-    { type: 'coins', amount: 100, chance: 25 },
-    { type: 'coins', amount: 250, chance: 20 },
-    { type: 'coins', amount: 500, chance: 15 },
-    { type: 'coins', amount: 1000, chance: 10 },
-    { type: 'coins', amount: 2500, chance: 5 },
-    { type: 'coins', amount: 5000, chance: 3 },
-    { type: 'coins', amount: 10000, chance: 1 },
-    { type: 'skin', chance: 10 },
-    { type: 'nothing', chance: 11 }
-  ];
-
-  // Функции для рефералов
-  function generateReferralCode() {
-    return 'ref_' + Math.random().toString(36).substr(2, 8).toUpperCase();
-  }
-
-  function initReferralSystem() {
-    // Сохраняем реферальный код
-    localStorage.setItem('referralCode', referralCode);
-
-    // Проверяем реферальную ссылку в URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const refCode = urlParams.get('ref');
-
-    if (refCode && refCode !== referralCode && database) {
-      // Регистрируем реферала
-      database.ref('referrals/' + refCode + '/' + userId).set({
-        timestamp: Date.now(),
-        ip: 'unknown'
-      });
-    }
-
-    // Обновляем реферальную ссылку
-    const baseUrl = window.location.href.split('?')[0];
-    referralLink.textContent = baseUrl + '?ref=' + referralCode;
-
-    updateReferralStats();
-  }
-
-  function updateReferralStats() {
-    if (database) {
-      // Получаем количество рефералов
-      database.ref('referrals/' + referralCode).once('value').then((snapshot) => {
-        const referrals = snapshot.val();
-        const uniqueReferrals = referrals ? Object.keys(referrals).length : 0;
-
-        referralCount = uniqueReferrals;
-        localStorage.setItem('referralCount', referralCount);
-
-        // Обновляем отображение
-        referralCountElement.textContent = referralCount + '/10';
-        referralInvited.textContent = referralCount;
-        referralRemaining.textContent = Math.max(0, 10 - referralCount);
-
-        const progress = Math.min(100, (referralCount / 10) * 100);
-        referralProgress.style.width = progress + '%';
-        referralProgressText.textContent = referralCount + '/10';
-
-        // Проверяем бонус
-        if (referralCount >= 10 && !referralBonusClaimed) {
-          claimReferralBonus();
-        }
-      });
-    }
-  }
-
-  function claimReferralBonus() {
-    coins += 25000;
-    referralBonusClaimed = true;
-    localStorage.setItem('referralBonusClaimed', 'true');
-    updateDisplay();
-    alert('🎉 Бонус за рефералов! Вы получили 25,000 монет!');
-  }
-
-  function copyReferralLink() {
-    navigator.clipboard.writeText(referralLink.textContent).then(() => {
-      alert('✅ Реферальная ссылка скопирована!');
-    });
-  }
-
-  // Функции для пользовательских монет
-  function createCustomCoin() {
-    const coinName = document.getElementById('coinName').value.trim();
-    const coinSymbol = document.getElementById('coinSymbol').value.trim().toUpperCase();
-
-    if (coins < 900000) {
-      alert('❌ Недостаточно монет для создания своей монеты! Нужно 900,000 🪙');
-      return;
-    }
-
-    if (coinName.length < 3 || coinName.length > 10) {
-      alert('❌ Название монеты должно быть от 3 до 10 символов!');
-      return;
-    }
-
-    if (coinSymbol.length < 1 || coinSymbol.length > 3) {
-      alert('❌ Символ монеты должен быть от 1 до 3 символов!');
-      return;
-    }
-
-    // Создаем монету
-    const coinId = 'coin_' + Date.now();
-    customCoins[coinId] = {
-      name: coinName,
-      symbol: coinSymbol,
-      owner: userId,
-      price: 1.00,
-      supply: 1000,
-      created: Date.now()
+    let allTokens = JSON.parse(localStorage.getItem('allTokens')) || {
+        "MEC": { name: "MEC", price: 1.0, verified: true, history: [1.0, 1.05, 1.02, 1.1] }
     };
 
-    coins -= 900000;
-    localStorage.setItem('customCoins', JSON.stringify(customCoins));
-    updateDisplay();
+    let currentCoin = "MEC";
 
-    if (database) {
-      database.ref('customCoins/' + coinId).set(customCoins[coinId]);
-    }
-
-    alert(`🎉 Вы создали монету "${coinName}" (${coinSymbol})!`);
-    document.getElementById('coinName').value = '';
-    document.getElementById('coinSymbol').value = '';
-  }
-
-  function updateCustomCoinsList() {
-    if (!database) return;
-
-    database.ref('customCoins').on('value', (snapshot) => {
-      const coinsData = snapshot.val();
-      let html = '';
-
-      if (coinsData) {
-        Object.entries(coinsData).forEach(([coinId, coin]) => {
-          html += `
-            <div class="custom-coin-item">
-              <h4>${coin.name} (${coin.symbol})</h4>
-              <p>Цена: ${coin.price} 🪙 | В обращении: ${coin.supply}</p>
-              <p>Создатель: ${coin.owner === userId ? 'Вы' : 'Другой игрок'}</p>
-              <input type="number" id="buyAmount_${coinId}" placeholder="Количество" min="1" max="100" style="width: 60px; padding: 5px; margin-right: 10px; border-radius: 5px; border: 1px solid #FFD700; background: rgba(255,255,255,0.1); color: white;" class="input-field">
-              <button class="buy-button" onclick="buyCustomCoin('${coinId}')" style="padding: 5px 10px; font-size: 12px;">Купить</button>
-            </div>
-          `;
-        });
-      }
-
-      customCoinsList.innerHTML = html || '<p>Пока нет созданных монет</p>';
-    });
-  }
-
-  function buyCustomCoin(coinId) {
-    if (!database) return;
-
-    const amount = parseInt(document.getElementById('buyAmount_' + coinId).value) || 0;
-    if (amount <= 0) {
-      alert('❌ Введите корректное количество!');
-      return;
-    }
-
-    database.ref('customCoins/' + coinId).once('value').then((snapshot) => {
-      const coin = snapshot.val();
-      if (!coin) {
-        alert('❌ Монета не найдена!');
-        return;
-      }
-
-      const totalCost = coin.price * amount;
-      if (coins < totalCost) {
-        alert('❌ Недостаточно монет для покупки!');
-        return;
-      }
-
-      // Совершаем покупку
-      coins -= totalCost;
-
-      // Отправляем монеты создателю
-      if (database && coin.owner !== userId) {
-        database.ref('userCoins/' + coin.owner).transaction((current) => {
-          return (current || 0) + totalCost;
-        });
-      }
-
-      updateDisplay();
-      alert(`✅ Вы купили ${amount} ${coin.symbol} за ${totalCost} монет!`);
-    });
-  }
-
-  // Функции для онлайн графика
-  function initOnlineChart() {
-    if (!database) {
-      onlineStatus.textContent = 'Офлайн режим';
-      onlineDot.classList.add('offline');
-      return;
-    }
-
-    // Слушаем изменения глобального графика
-    database.ref('global/chart').on('value', (snapshot) => {
-      const data = snapshot.val();
-      if (data && data.prices) {
-        priceHistory = data.prices;
-        currentPrice = priceHistory[priceHistory.length - 1];
-        updateChart();
-        updateOnlineStatus();
-        lastUpdate.textContent = new Date().toLocaleTimeString();
-      }
-    });
-
-    // Слушаем количество онлайн игроков
-    database.ref('onlineUsers').on('value', (snapshot) => {
-      const users = snapshot.val();
-      const count = users ? Object.keys(users).length : 0;
-      onlinePlayers.textContent = count;
-    });
-
-    // Слушаем статистику по монетам
-    database.ref('userCoins').on('value', (snapshot) => {
-      const usersData = snapshot.val();
-      const usersWithCoins = usersData ? Object.keys(usersData).length : 0;
-      playersWithCoins.textContent = usersWithCoins;
-    });
-
-    // Добавляем пользователя в онлайн
-    const userRef = database.ref('onlineUsers/' + userId);
-    userRef.set({
-      lastSeen: Date.now(),
-      name: tg.initDataUnsafe?.user?.first_name || 'Игрок',
-      coins: coins
-    });
-
-    // Сохраняем баланс пользователя
-    if (coins > 0) {
-      database.ref('userCoins/' + userId).set(coins);
-    }
-
-    // Удаляем при закрытии
-    window.addEventListener('beforeunload', () => {
-      userRef.remove();
-    });
-  }
-
-  function updateOnlinePrice() {
-    if (!database || !onlineChartEnabled) {
-      // Локальное обновление цены
-      const change = (Math.random() - 0.5) * 0.1;
-      currentPrice = Math.max(0.1, currentPrice + change);
-      priceHistory.push(currentPrice);
-
-      if (priceHistory.length > 50) {
-        priceHistory.shift();
-      }
-
-      localStorage.setItem('priceHistory', JSON.stringify(priceHistory));
-      updateChart();
-      return;
-    }
-
-    // Глобальное обновление цены
-    const change = (Math.random() - 0.5) * 0.1;
-    currentPrice = Math.max(0.1, currentPrice + change);
-    priceHistory.push(currentPrice);
-
-    if (priceHistory.length > 50) {
-      priceHistory.shift();
-    }
-
-    // Сохраняем в Firebase
-    database.ref('global/chart').set({
-      prices: priceHistory,
-      lastUpdate: Date.now(),
-      currentPrice: currentPrice
-    });
-
-    // Обновляем баланс пользователя если он онлайн
-    if (coins > 0) {
-      database.ref('userCoins/' + userId).set(coins);
-    }
-  }
-
-  function updateOnlineStatus() {
-    if (database && onlineChartEnabled) {
-      onlineStatus.textContent = 'Онлайн';
-      onlineDot.classList.remove('offline');
-    } else {
-      onlineStatus.textContent = 'Офлайн';
-      onlineDot.classList.add('offline');
-    }
-  }
-
-  // Инициализация всех систем
-  initOnlineChart();
-  initReferralSystem();
-  updateCustomCoinsList();
-
-  // Функции панели разработчика
-  function openDevPanel() {
-    devPanel.style.display = 'block';
-    devOverlay.style.display = 'block';
-  }
-
-  function closeDevPanelFunc() {
-    devPanel.style.display = 'none';
-    devOverlay.style.display = 'none';
-  }
-
-  function executeDevCommand() {
-    const command = devCommand.value.toLowerCase().trim();
-    const args = command.split(' ');
-
-    switch(args[0]) {
-      case 'give':
-        if (args[1] === 'coins' && args[2]) {
-          const amount = parseInt(args[2]);
-          coins += amount;
-          updateDisplay();
-          alert(`✅ Добавлено ${amount} монет!`);
-        } else if (args[1] === 'crypto' && args[2]) {
-          const amount = parseInt(args[2]);
-          cryptoAmount += amount;
-          updateDisplay();
-          alert(`✅ Добавлено ${amount} MEC!`);
-        }
-        break;
-
-      case 'set':
-        if (args[1] === 'multiplier' && args[2]) {
-          const multiplier = parseInt(args[2]);
-          boostMultiplier = multiplier;
-          updateDisplay();
-          alert(`✅ Множитель установлен на ${multiplier}x!`);
-        }
-        break;
-
-      case 'unlock':
-        if (args[1] === 'all') {
-          ownedSkins = Object.keys(skins);
-          updateDisplay();
-          alert('✅ Все скины разблокированы!');
-        }
-        break;
-
-      case 'reset':
-        if (args[1] === 'all') {
-          resetGame();
-        }
-        break;
-
-      case 'snepsecret':
-        giveMillionCoins();
-        break;
-
-      default:
-        alert('❌ Неизвестная команда!');
-    }
-
-    devCommand.value = '';
-  }
-
-  // Секретная команда - выдает 1,000,000 монет
-  function giveMillionCoins() {
-    coins += 1000000;
-    updateDisplay();
-    alert('🎉 СЕКРЕТНАЯ КОМАНДА АКТИВИРОВАНА!\n\nВам выдано 1,000,000 монет! 💰');
-  }
-
-  // Обработка нажатия клавиши ' (апостроф) для открытия панели разработчика
-  document.addEventListener('keydown', function(event) {
-    if (event.key === "'" || event.key === "`") {
-      event.preventDefault();
-      openDevPanel();
-    }
-
-    if (event.altKey && event.key === 'd') {
-      event.preventDefault();
-      openDevPanel();
-    }
-  });
-
-  // Инициализация отображения
-  function updateDisplay() {
-    scoreElement.textContent = coins + ' монет';
-    coinsElement.textContent = coins;
-    cryptoAmountElement.textContent = cryptoAmount;
-    boostLevelElement.textContent = boostMultiplier + 'x';
-    currentSkinElement.textContent = skins[currentSkin].name;
-    referralCountElement.textContent = referralCount + '/10';
-
-    applySkin(currentSkin);
-    updateShopButtons();
-
-    localStorage.setItem('gameCoins', coins);
-    localStorage.setItem('boostMultiplier', boostMultiplier);
-    localStorage.setItem('currentSkin', currentSkin);
-    localStorage.setItem('ownedSkins', JSON.stringify(ownedSkins));
-    localStorage.setItem('cryptoAmount', cryptoAmount);
-
-    // Обновляем онлайн статус если есть монеты
-    if (database && coins > 0) {
-      database.ref('userCoins/' + userId).set(coins);
-    }
-  }
-
-  // Применение скина
-  function applySkin(skin) {
-    tapButton.className = 'coin-button';
-    if (skin !== 'default') {
-      tapButton.classList.add(skins[skin].class);
-    }
-  }
-
-  // Обновление доступности кнопок магазина
-  function updateShopButtons() {
-    document.getElementById('buyBoost2').disabled = coins < 1000;
-    document.getElementById('buyBoost5').disabled = coins < 5000;
-    document.getElementById('buyBoost10').disabled = coins < 10000;
-    document.getElementById('buyBoost25').disabled = coins < 25000;
-    document.getElementById('buyBoost50').disabled = coins < 50000;
-
-    document.getElementById('buySkinDiamond').disabled = coins < 5000 || ownedSkins.includes('diamond');
-    document.getElementById('buySkinRuby').disabled = coins < 8000 || ownedSkins.includes('ruby');
-    document.getElementById('buySkinEmerald').disabled = coins < 12000 || ownedSkins.includes('emerald');
-    document.getElementById('buySkinBitcoin').disabled = coins < 20000 || ownedSkins.includes('bitcoin');
-    document.getElementById('buySkinCrown').disabled = coins < 50000 || ownedSkins.includes('crown');
-
-    document.getElementById('createCoin').disabled = coins < 900000;
-
-    updateSkinButtons();
-    spinButton.disabled = coins < 500;
-  }
-
-  // Обновление кнопок скинов
-  function updateSkinButtons() {
-    const skinButtons = {
-      'diamond': document.getElementById('buySkinDiamond'),
-      'ruby': document.getElementById('buySkinRuby'),
-      'emerald': document.getElementById('buySkinEmerald'),
-      'bitcoin': document.getElementById('buySkinBitcoin'),
-      'crown': document.getElementById('buySkinCrown')
-    };
-
-    for (const [skin, button] of Object.entries(skinButtons)) {
-      if (ownedSkins.includes(skin)) {
-        button.textContent = '✓ Куплено';
-        button.disabled = true;
-        if (currentSkin === skin) {
-          button.innerHTML = '✓ Выбрано <span class="owned">★</span>';
+    // --- МАГАЗИН ---
+    function buyItem(type, value, price) {
+        if (coins >= price) {
+            coins -= price;
+            if (type === 'boost') {
+                boost = value;
+                alert("Буст активирован! Сила клика x" + boost);
+            } else if (type === 'skin') {
+                currentSkin = value;
+                alert("Скин применен!");
+                applySkin();
+            }
+            saveData();
+            updateUI();
         } else {
-          button.innerHTML = '✓ Выбрать скин';
-          button.disabled = false;
-          button.onclick = () => selectSkin(skin);
+            alert("Недостаточно монет! Нужно " + price);
         }
-      }
-    }
-  }
-
-  // Функция обработки клика
-  function handleClick() {
-    coins += boostMultiplier;
-    updateDisplay();
-
-    tapButton.style.transform = 'scale(0.95) rotate(5deg)';
-    setTimeout(() => {
-      tapButton.style.transform = 'scale(1) rotate(0deg)';
-    }, 100);
-  }
-
-  // Функция сброса
-  function resetGame() {
-    if (confirm('Вы уверены? Это сбросит весь прогресс!')) {
-      coins = 0;
-      boostMultiplier = 1;
-      currentSkin = 'default';
-      ownedSkins = ['default'];
-      cryptoAmount = 0;
-      priceHistory = [1.00];
-      currentPrice = 1.00;
-      referralCount = 0;
-      referralBonusClaimed = false;
-      customCoins = {};
-      localStorage.clear();
-      updateDisplay();
-      updateChart();
-      updateReferralStats();
-    }
-  }
-
-  // Функции для модальных окон
-  function openShop() {
-    shopModal.style.display = 'block';
-    updateShopButtons();
-  }
-
-  function closeShopModal() {
-    shopModal.style.display = 'none';
-  }
-
-  function openRoulette() {
-    rouletteModal.style.display = 'block';
-    updateShopButtons();
-  }
-
-  function closeRouletteModal() {
-    rouletteModal.style.display = 'none';
-  }
-
-  function openChart() {
-    chartModal.style.display = 'block';
-    updateChart();
-  }
-
-  function closeChartModal() {
-    chartModal.style.display = 'none';
-  }
-
-  function openReferral() {
-    referralModal.style.display = 'block';
-    updateReferralStats();
-  }
-
-  function closeReferralModal() {
-    referralModal.style.display = 'none';
-  }
-
-  function openSettings() {
-    settingsModal.style.display = 'block';
-    document.getElementById('onlineChartEnabled').checked = onlineChartEnabled;
-  }
-
-  function closeSettingsModal() {
-    settingsModal.style.display = 'none';
-    onlineChartEnabled = document.getElementById('onlineChartEnabled').checked;
-    localStorage.setItem('onlineChartEnabled', onlineChartEnabled);
-    updateOnlineStatus();
-  }
-
-  // Функция покупки усилителя
-  function buyBoost(multiplier, cost) {
-    if (coins >= cost) {
-      coins -= cost;
-      boostMultiplier = multiplier;
-      updateDisplay();
-      alert(`🎉 Усилитель ${multiplier}x активирован!`);
-    }
-  }
-
-  // Функция покупки скина
-  function buySkin(skin) {
-    const skinData = skins[skin];
-    if (coins >= skinData.price && !ownedSkins.includes(skin)) {
-      coins -= skinData.price;
-      ownedSkins.push(skin);
-      selectSkin(skin);
-      updateDisplay();
-      alert(`🎉 Скин "${skinData.name}" куплен и активирован!`);
-    }
-  }
-
-  // Функция выбора скина
-  function selectSkin(skin) {
-    if (ownedSkins.includes(skin)) {
-      currentSkin = skin;
-      updateDisplay();
-    }
-  }
-
-  // Функция рулетки
-  function spinRoulette() {
-    if (coins < 500) return;
-
-    coins -= 500;
-
-    let random = Math.random() * 100;
-    let cumulativeChance = 0;
-    let prize = null;
-
-    for (const p of roulettePrizes) {
-      cumulativeChance += p.chance;
-      if (random <= cumulativeChance) {
-        prize = p;
-        break;
-      }
     }
 
-    let message = '';
-    if (prize.type === 'coins') {
-      coins += prize.amount;
-      message = `🎉 Вы выиграли ${prize.amount} монет!`;
-    } else if (prize.type === 'skin') {
-      const availableSkins = Object.keys(skins).filter(skin =>
-        skin !== 'default' && !ownedSkins.includes(skin)
-      );
-
-      if (availableSkins.length > 0) {
-        const randomSkin = availableSkins[Math.floor(Math.random() * availableSkins.length)];
-        ownedSkins.push(randomSkin);
-        message = `🎉 Вы выиграли скин "${skins[randomSkin].name}"!`;
-        if (confirm(message + '\n\nАктивировать сейчас?')) {
-          selectSkin(randomSkin);
+    function applySkin() {
+        const btn = document.getElementById('mainButton');
+        btn.className = 'coin-button'; // сброс
+        if(currentSkin !== 'gold') {
+            btn.classList.add('skin-' + currentSkin);
         }
-      } else {
-        const bonusCoins = 5000;
-        coins += bonusCoins;
-        message = `🎉 Все скины уже есть! Бонус: ${bonusCoins} монет!`;
-      }
-    } else {
-      message = '😔 Повезет в следующий раз!';
     }
 
-    rouletteResult.innerHTML = `<div class="roulette-prize">${message}</div>`;
-    updateDisplay();
-  }
-
-  // Функции для графика и торговли
-  function updateChart() {
-    const canvas = document.getElementById('priceChart');
-    const ctx = canvas.getContext('2d');
-
-    canvas.width = canvas.offsetWidth;
-    canvas.height = canvas.offsetHeight;
-
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    const minPrice = Math.min(...priceHistory);
-    const maxPrice = Math.max(...priceHistory);
-    const priceRange = maxPrice - minPrice || 1;
-
-    ctx.beginPath();
-    ctx.strokeStyle = currentPrice >= priceHistory[priceHistory.length - 2] ? '#4CAF50' : '#f44336';
-    ctx.lineWidth = 2;
-
-    priceHistory.forEach((price, index) => {
-      const x = (index / (priceHistory.length - 1)) * canvas.width;
-      const y = canvas.height - ((price - minPrice) / priceRange) * canvas.height;
-
-      if (index === 0) {
-        ctx.moveTo(x, y);
-      } else {
-        ctx.lineTo(x, y);
-      }
-    });
-
-    ctx.stroke();
-
-    const priceChange = ((currentPrice - priceHistory[priceHistory.length - 2]) / priceHistory[priceHistory.length - 2] * 100) || 0;
-    document.getElementById('currentPrice').textContent = currentPrice.toFixed(2);
-    document.getElementById('priceChange').textContent = priceChange.toFixed(2);
-    document.getElementById('priceChange').className = priceChange >= 0 ? 'price-up' : 'price-down';
-
-    document.getElementById('cryptoBalance').textContent = cryptoAmount;
-    document.getElementById('cryptoValue').textContent = (cryptoAmount * currentPrice).toFixed(2);
-  }
-
-  function buyCrypto() {
-    const amount = parseInt(document.getElementById('tradeAmount').value) || 0;
-    const cost = amount * currentPrice;
-
-    if (amount > 0 && coins >= cost) {
-      coins -= cost;
-      cryptoAmount += amount;
-      updateDisplay();
-      updateChart();
-      alert(`✅ Куплено ${amount} MEC за ${cost.toFixed(2)} монет`);
-    } else {
-      alert('❌ Недостаточно монет или неверное количество');
+    // --- ЛОГИКА БИРЖИ ---
+    function openExchange() {
+        currentCoin = "MEC";
+        updateSelectMenu();
+        openModal('chartModal');
+        updateUI();
     }
-  }
 
-  function sellCrypto() {
-    const amount = parseInt(document.getElementById('tradeAmount').value) || 0;
-
-    if (amount > 0 && cryptoAmount >= amount) {
-      const earnings = amount * currentPrice;
-      coins += earnings;
-      cryptoAmount -= amount;
-      updateDisplay();
-      updateChart();
-      alert(`✅ Продано ${amount} MEC за ${earnings.toFixed(2)} монет`);
-    } else {
-      alert('❌ Недостаточно MEC или неверное количество');
+    function updateSelectMenu() {
+        const select = document.getElementById('coinSelect');
+        select.innerHTML = "";
+        for (let id in allTokens) {
+            let opt = document.createElement('option');
+            opt.value = id;
+            opt.innerText = allTokens[id].name + (allTokens[id].verified ? " ✅" : "");
+            select.appendChild(opt);
+        }
+        select.value = currentCoin;
     }
-  }
 
-  // Обработчики событий - ИСПРАВЛЕНИЕ ДЛЯ ПОЛЕЙ ВВОДА
-  tapButton.addEventListener('click', handleClick);
-  resetButton.addEventListener('click', resetGame);
-  shopButton.addEventListener('click', openShop);
-  rouletteButton.addEventListener('click', openRoulette);
-  chartButton.addEventListener('click', openChart);
-  referralButton.addEventListener('click', openReferral);
-  userAvatarElement.addEventListener('click', openSettings);
-  defaultAvatarElement.addEventListener('click', openSettings);
-  closeDevPanel.addEventListener('click', closeDevPanelFunc);
-  devOverlay.addEventListener('click', closeDevPanelFunc);
-  createCoinButton.addEventListener('click', createCustomCoin);
-
-  closeShop.addEventListener('click', closeShopModal);
-  closeRoulette.addEventListener('click', closeRouletteModal);
-  closeChart.addEventListener('click', closeChartModal);
-  closeReferral.addEventListener('click', closeReferralModal);
-  closeSettings.addEventListener('click', closeSettingsModal);
-
-  spinButton.addEventListener('click', spinRoulette);
-  document.getElementById('buyCrypto').addEventListener('click', buyCrypto);
-  document.getElementById('sellCrypto').addEventListener('click', sellCrypto);
-
-  // Обработчики для кнопок магазина
-  document.getElementById('buyBoost2').addEventListener('click', () => buyBoost(2, 1000));
-  document.getElementById('buyBoost5').addEventListener('click', () => buyBoost(5, 5000));
-  document.getElementById('buyBoost10').addEventListener('click', () => buyBoost(10, 10000));
-  document.getElementById('buyBoost25').addEventListener('click', () => buyBoost(25, 25000));
-  document.getElementById('buyBoost50').addEventListener('click', () => buyBoost(50, 50000));
-
-  document.getElementById('buySkinDiamond').addEventListener('click', () => buySkin('diamond'));
-  document.getElementById('buySkinRuby').addEventListener('click', () => buySkin('ruby'));
-  document.getElementById('buySkinEmerald').addEventListener('click', () => buySkin('emerald'));
-  document.getElementById('buySkinBitcoin').addEventListener('click', () => buySkin('bitcoin'));
-  document.getElementById('buySkinCrown').addEventListener('click', () => buySkin('crown'));
-
-  // Закрытие модальных окон при клике вне их - ИСПРАВЛЕНИЕ
-  window.addEventListener('click', (event) => {
-    // Проверяем, что клик был по overlay, а не по полю ввода
-    if (event.target.classList.contains('modal')) {
-      if (event.target === shopModal) closeShopModal();
-      if (event.target === rouletteModal) closeRouletteModal();
-      if (event.target === chartModal) closeChartModal();
-      if (event.target === referralModal) closeReferralModal();
-      if (event.target === settingsModal) closeSettingsModal();
+    function changeCoin(val) {
+        currentCoin = val;
+        updateUI();
     }
-  });
 
-  // Поддержка тапов на мобильных - ИСПРАВЛЕНИЕ
-  tapButton.addEventListener('touchstart', function(e) {
-    // Проверяем, что тап не по полю ввода
-    if (!e.target.classList.contains('input-field')) {
-      e.preventDefault();
-      handleClick();
+    function tradeAction(type) {
+        const amount = parseInt(document.getElementById('tradeAmount').value);
+        if (isNaN(amount) || amount <= 0) return;
+
+        let token = allTokens[currentCoin];
+        if (type === 'buy') {
+            let totalCost = (token.price * 500) * amount;
+            if (coins >= totalCost) {
+                coins -= totalCost;
+                myBalances[currentCoin] = (myBalances[currentCoin] || 0) + amount;
+                token.price += (0.01 * amount);
+                token.history.push(token.price);
+            } else alert("Мало монет!");
+        } else {
+            if ((myBalances[currentCoin] || 0) >= amount) {
+                myBalances[currentCoin] -= amount;
+                coins += (token.price * 450) * amount;
+                token.price = Math.max(0.1, token.price - (0.01 * amount));
+                token.history.push(token.price);
+            } else alert("Нет токенов!");
+        }
+        if (token.history.length > 20) token.history.shift();
+        saveData();
+        updateUI();
     }
-  });
 
-  // Вибрация при клике
-  tapButton.addEventListener('click', function() {
-    if (navigator.vibrate && !event.target.classList.contains('input-field')) {
-      navigator.vibrate(10);
+    function createNewToken() {
+        const name = document.getElementById('newCoinName').value.trim().toUpperCase();
+        if (name.length < 3 || coins < 2000000) return alert("Нужно 2M и 3-5 букв!");
+        coins -= 2000000;
+        allTokens[name] = { name: name, price: 1.0, verified: false, history: [1.0, 1.0] };
+        myBalances[name] = 0;
+        saveData();
+        alert(`ICO токена ${name} успешно завершено!`);
+        closeModal('createCoinModal');
+        updateSelectMenu();
     }
-  });
 
-  // Обновление цены каждые 10 секунд
-  setInterval(updateOnlinePrice, 10000);
+    // --- ВИЗУАЛ ---
+    function updateUI() {
+        document.getElementById('score').innerText = Math.floor(coins).toLocaleString() + " 🪙";
+        document.getElementById('multInfo').innerText = "Сила клика: x" + boost;
 
-  // Обновление реферальной статистики каждые 30 секунд
-  setInterval(updateReferralStats, 30000);
+        let token = allTokens[currentCoin];
+        document.getElementById('currentCoinDisplay').innerText = token.name + (token.verified ? " ✅" : "");
+        document.getElementById('priceVal').innerText = token.price.toFixed(2);
+        document.getElementById('modalPrice').innerText = token.price.toFixed(2);
+        document.getElementById('myMec').innerText = myBalances[currentCoin] || 0;
 
-  // Инициализация при загрузке
-  updateDisplay();
-  updateChart();
-  updateOnlineStatus();
+        renderCanvasChart(token.history);
+    }
+
+    function renderCanvasChart(history) {
+        const c = document.getElementById('canvas');
+        const ctx = c.getContext('2d');
+        ctx.clearRect(0,0,c.width,c.height);
+        if(history.length < 2) return;
+
+        let isUp = history[history.length-1] >= history[history.length-2];
+        ctx.strokeStyle = isUp ? '#00ff00' : '#ff0000';
+        ctx.lineWidth = 3;
+
+        let min = Math.min(...history) * 0.98;
+        let max = Math.max(...history) * 1.02;
+        let range = max - min || 1;
+        let xStep = c.width / (history.length - 1);
+
+        ctx.beginPath();
+        history.forEach((p, i) => {
+            let x = i * xStep;
+            let y = c.height - ((p - min) / range * c.height);
+            if(i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        });
+        ctx.stroke();
+    }
+
+    // --- ПРОЧЕЕ ---
+    function saveData() {
+        localStorage.setItem('coins', coins);
+        localStorage.setItem('boost', boost);
+        localStorage.setItem('currentSkin', currentSkin);
+        localStorage.setItem('balances', JSON.stringify(myBalances));
+        localStorage.setItem('allTokens', JSON.stringify(allTokens));
+    }
+
+    document.getElementById('mainButton').onclick = () => { coins += boost; updateUI(); saveData(); };
+
+    function spinRoulette() {
+        if (coins < 500) return alert("Нужно 500 монет!");
+        coins -= 500;
+        const res = document.getElementById('rouletteResult');
+        res.innerText = "🌀";
+        setTimeout(() => {
+            const r = Math.random();
+            if (r > 0.98) { coins += 50000; res.innerText = "💎 50k!"; }
+            else if (r > 0.8) { coins += 2000; res.innerText = "💰 2000"; }
+            else if (r > 0.5) { coins += 600; res.innerText = "✅ 600"; }
+            else { res.innerText = "❌ 0"; }
+            updateUI(); saveData();
+        }, 800);
+    }
+
+    function openModal(id) { document.getElementById(id).style.display = 'block'; }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+    // Инициализация
+    applySkin();
+    updateUI();
 </script>
 </body>
 </html>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MeCoin - ELITE SHOP & ADMIN</title>
+    <title>MeCoin - ULTIMATE EDITION</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -15,7 +15,7 @@
 
         body { display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
 
-        /* Аватарка из ТГ */
+        /* Аватарка */
         .user-avatar {
             position: absolute; top: 20px; right: 20px;
             width: 50px; height: 50px; border-radius: 50%;
@@ -46,35 +46,34 @@
         .coin-button.skin-diamond:after { content: '💎'; }
         .coin-button.skin-emerald { background: radial-gradient(circle at 30% 30%, #a2f2a5, #4CAF50, #1b5e20); border-color: #a2f2a5; }
         .coin-button.skin-emerald:after { content: '🌿'; }
-        .coin-button.skin-ruby { background: radial-gradient(circle at 30% 30%, #ff8a80, #f44336, #b71c1c); border-color: #ff8a80; }
-        .coin-button.skin-ruby:after { content: '🔥'; }
 
         .coin-button:active { transform: scale(0.94); }
 
         .stats { background: rgba(255,255,255,0.07); padding: 15px; border-radius: 18px; backdrop-filter: blur(10px); border: 1px solid rgba(255,215,0,0.15); width: 100%; }
         .stats p { margin: 6px 0; font-size: 14px; color: #FFD700; display: flex; justify-content: space-between; }
-        .stats span { color: white; font-weight: 600; }
 
         .buttons-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; margin: 15px 0; }
         button { border: 1px solid #333; color: white; padding: 12px; border-radius: 14px; cursor: pointer; font-size: 13px; font-weight: bold; transition: 0.2s; background: #111; }
-        button:active { transform: scale(0.96); background: #222; }
-
         .create-btn { background: linear-gradient(to right, #FFD700, #FFA500); color: black; grid-column: span 2; border: none; }
 
         /* Модальные окна */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 100; overflow-y: auto; }
-        .modal-content { background: #0d0d0d; padding: 25px; border-radius: 24px; border: 1px solid #222; width: 90%; max-width: 360px; margin: 50px auto; text-align: center; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.92); z-index: 100; overflow-y: auto; }
+        .modal-content { background: #0d0d0d; padding: 25px; border-radius: 24px; border: 1px solid #222; width: 90%; max-width: 360px; margin: 40px auto; text-align: center; }
 
         .shop-section { margin-bottom: 20px; text-align: left; }
         .shop-section h4 { border-bottom: 1px solid #222; padding-bottom: 5px; color: #FFD700; font-size: 14px; margin-bottom: 10px; }
         .shop-item { display: flex; justify-content: space-between; align-items: center; background: #151515; padding: 10px; border-radius: 12px; margin-bottom: 8px; }
         .buy-mini-btn { width: auto; padding: 6px 14px; font-size: 12px; border-color: #4CAF50; color: #4CAF50; }
 
-        .chart-container { width: 100%; height: 150px; background: #000; border-radius: 12px; margin: 10px 0; border: 1px solid #111; }
-        .trade-input { width: 100%; padding: 12px; margin: 10px 0; background: #1a1a1a; border: 1px solid #333; color: white; border-radius: 12px; text-align: center; font-size: 18px; }
+        .chart-container { width: 100%; height: 150px; background: #000; border-radius: 12px; margin: 10px 0; border: 1px solid #222; }
+        .trade-input { width: 100%; padding: 12px; margin: 10px 0; background: #1a1a1a; border: 1px solid #333; color: white; border-radius: 12px; text-align: center; }
 
-        /* Админ-панель */
-        #adminPanel { display: none; position: fixed; top: 20%; left: 50%; transform: translateX(-50%); width: 300px; background: #1a0000; border: 2px solid red; padding: 20px; z-index: 200; border-radius: 15px; }
+        /* Казино */
+        .casino-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+        .slot-machine { font-size: 32px; background: #000; padding: 15px; border: 2px solid gold; border-radius: 12px; margin: 10px 0; }
+
+        /* Админ */
+        #adminPanel { display: none; position: fixed; top: 10%; left: 50%; transform: translateX(-50%); width: 320px; background: #1a0000; border: 2px solid red; padding: 20px; z-index: 200; border-radius: 15px; }
         .admin-input { width: 100%; padding: 10px; margin: 5px 0; background: #000; border: 1px solid #444; color: white; }
     </style>
 </head>
@@ -89,9 +88,9 @@
 
     <div class="buttons-grid">
         <button onclick="openModal('shopModal')" style="border-color: #4CAF50;">🛒 Магазин</button>
-        <button onclick="openModal('rouletteModal')" style="border-color: #9C27B0;">🎰 Рулетка</button>
+        <button onclick="openModal('casinoModal')" style="border-color: #E91E63;">🎰 Казино</button>
         <button onclick="openExchange()" style="border-color: #2196F3;">📈 Биржа</button>
-        <button onclick="openModal('refModal')">👥 Реф</button>
+        <button onclick="openModal('promoModal')" style="border-color: #FFD700;">🎁 Промокод</button>
         <button class="create-btn" onclick="openModal('createCoinModal')">💎 СОЗДАТЬ ТОКЕН (2M)</button>
     </div>
 
@@ -102,94 +101,88 @@
     </div>
 </div>
 
-<div id="settingsModal" class="modal">
-    <div class="modal-content">
-        <h3 id="userName">Настройки</h3>
-        <p style="font-size: 12px; color: gray;">ID: <span id="userId">---</span></p>
-        <hr border="0" style="border-top:1px solid #222; margin: 15px 0;">
-        <button onclick="resetData()" style="border-color: #f44336; color: #f44336;">Сбросить прогресс</button>
-        <button onclick="closeModal('settingsModal')" style="margin-top:15px; border:none;">Назад</button>
-    </div>
-</div>
-
-<div id="shopModal" class="modal">
-    <div class="modal-content">
-        <h3 style="color:#4CAF50">Магазин</h3>
-        <div class="shop-section">
-            <h4>🚀 Сила клика</h4>
-            <div class="shop-item"><span>Клик x5</span><button class="buy-mini-btn" onclick="buyItem('boost', 5, 10000)">10k</button></div>
-            <div class="shop-item"><span>Клик x50</span><button class="buy-mini-btn" onclick="buyItem('boost', 50, 500000)">500k</button></div>
-        </div>
-        <div class="shop-section">
-            <h4>🤖 Авто-майнинг</h4>
-            <div class="shop-item"><span>+10/сек</span><button class="buy-mini-btn" onclick="buyItem('auto', 10, 20000)">20k</button></div>
-            <div class="shop-item"><span>+100/сек</span><button class="buy-mini-btn" onclick="buyItem('auto', 100, 150000)">150k</button></div>
-        </div>
-        <div class="shop-section">
-            <h4>🎨 Скины</h4>
-            <div class="shop-item"><span>Изумруд</span><button class="buy-mini-btn" onclick="buyItem('skin', 'emerald', 25000)">25k</button></div>
-            <div class="shop-item"><span>Алмаз</span><button class="buy-mini-btn" onclick="buyItem('skin', 'diamond', 1000000)">1M</button></div>
-        </div>
-        <button onclick="closeModal('shopModal')" style="border:none; color:gray;">Закрыть</button>
-    </div>
-</div>
-
 <div id="chartModal" class="modal">
     <div class="modal-content">
-        <select id="coinSelect" class="trade-input" onchange="changeCoin(this.value)" style="margin-top:0"></select>
-        <div class="chart-container"><canvas id="canvas"></canvas></div>
+        <select id="coinSelect" class="trade-input" onchange="changeCoin(this.value)"></select>
+        <div class="chart-container"><canvas id="canvas" width="300" height="150"></canvas></div>
         <p>Цена: <span id="modalPrice">1.00</span> $</p>
         <input type="number" id="tradeAmount" class="trade-input" value="1">
         <div style="display: flex; gap: 10px;">
-            <button onclick="tradeAction('buy')" style="border-color: #4CAF50;">КУПИТЬ</button>
-            <button onclick="tradeAction('sell')" style="border-color: #f44336;">ПРОДАТЬ</button>
+            <button onclick="tradeAction('buy')" style="border-color: #4CAF50; flex:1;">КУПИТЬ</button>
+            <button onclick="tradeAction('sell')" style="border-color: #f44336; flex:1;">ПРОДАТЬ</button>
         </div>
         <button onclick="closeModal('chartModal')" style="margin-top:15px; border:none;">Закрыть</button>
     </div>
 </div>
 
-<div id="adminPanel">
-    <h3 style="color:red; margin-top:0;">ADMIN CONSOLE</h3>
-    <input type="number" id="adminCoinInput" class="admin-input" placeholder="Кол-во монет">
-    <button onclick="adminAddCoins()" style="width:100%; margin-bottom:10px;">Установить баланс</button>
-    <button onclick="document.getElementById('adminPanel').style.display='none'" style="width:100%; border:none;">Закрыть</button>
+<div id="shopModal" class="modal">
+    <div class="modal-content">
+        <h3 style="color:#4CAF50">Элитный Магазин</h3>
+        <div class="shop-section">
+            <h4>🚀 Улучшения</h4>
+            <div class="shop-item"><span>Клик x5</span><button class="buy-mini-btn" onclick="buyItem('boost', 5, 10000)">10k</button></div>
+            <div class="shop-item"><span>Клик x50</span><button class="buy-mini-btn" onclick="buyItem('boost', 50, 500000)">500k</button></div>
+            <div class="shop-item"><span>Авто +10/с</span><button class="buy-mini-btn" onclick="buyItem('auto', 10, 20000)">20k</button></div>
+            <div class="shop-item"><span>Авто +100/с</span><button class="buy-mini-btn" onclick="buyItem('auto', 100, 150000)">150k</button></div>
+        </div>
+        <div class="shop-section">
+            <h4>🎨 Скины</h4>
+            <div class="shop-item"><span>Серебро</span><button class="buy-mini-btn" onclick="buyItem('skin', 'silver', 5000)">5k</button></div>
+            <div class="shop-item"><span>Изумруд</span><button class="buy-mini-btn" onclick="buyItem('skin', 'emerald', 25000)">25k</button></div>
+            <div class="shop-item"><span>Алмаз</span><button class="buy-mini-btn" onclick="buyItem('skin', 'diamond', 1000000)">1M</button></div>
+        </div>
+        <button onclick="closeModal('shopModal')" style="border:none;">Закрыть</button>
+    </div>
 </div>
 
-<div id="rouletteModal" class="modal"><div class="modal-content"><h3>🎰 Рулетка</h3><div id="rouletteResult" style="font-size:32px; margin:20px;">💰</div><button onclick="spinRoulette()">Крутить (500)</button><button onclick="closeModal('rouletteModal')" style="margin-top:20px; border:none;">Закрыть</button></div></div>
-<div id="createCoinModal" class="modal"><div class="modal-content"><h2>Новое ICO</h2><input type="text" id="newCoinName" class="trade-input" placeholder="TICKER" maxlength="5"><button class="create-btn" onclick="createNewToken()">ЗАПУСТИТЬ (2M)</button><button onclick="closeModal('createCoinModal')" style="margin-top:10px; border:none;">Отмена</button></div></div>
-<div id="refModal" class="modal"><div class="modal-content"><h3>👥 Рефералы</h3><input type="text" id="refLink" readonly class="trade-input" style="color:orange;"><button onclick="closeModal('refModal')" style="margin-top:20px; border:none;">Закрыть</button></div></div>
+<div id="casinoModal" class="modal">
+    <div class="modal-content">
+        <h3 style="color:#E91E63">MEC CASINO</h3>
+        <div id="slotDisplay" class="slot-machine">❓|❓|❓</div>
+        <input type="number" id="casinoBet" class="trade-input" value="100">
+        <div class="casino-grid">
+            <button onclick="playSlots()">🎰 Слоты</button>
+            <button onclick="playDice()">🎲 Кости</button>
+            <button onclick="playFlip()" style="grid-column: span 2;">🌕 Монетка (x1.9)</button>
+        </div>
+        <p id="casinoStatus" style="color:gray; font-size:12px; margin-top:10px;">Ставьте с умом</p>
+        <button onclick="closeModal('casinoModal')" style="margin-top:10px; border:none;">Выход</button>
+    </div>
+</div>
+
+<div id="adminPanel">
+    <h3 style="color:red; margin:0;">ADMIN</h3>
+    <input type="number" id="adminCoinInput" class="admin-input" placeholder="Монеты">
+    <button onclick="adminSetSelf()" style="width:100%; background:darkred; border:none; padding:10px; color:white;">Установить мне</button>
+    <hr style="border:1px solid #300; margin:10px 0;">
+    <input type="text" id="newPromoName" class="admin-input" placeholder="Код">
+    <input type="number" id="newPromoValue" class="admin-input" placeholder="Сумма">
+    <button onclick="adminCreatePromo()" style="width:100%; background:green; border:none; padding:10px; color:white;">Создать промо</button>
+    <div id="activePromos" style="font-size:10px; color:gray; margin-top:5px;"></div>
+    <button onclick="document.getElementById('adminPanel').style.display='none'" style="width:100%; margin-top:10px;">Закрыть</button>
+</div>
+
+<div id="promoModal" class="modal"><div class="modal-content"><h3>Активация</h3><input type="text" id="userPromoInput" class="trade-input" placeholder="КОД"><button onclick="activatePromo()" style="width:100%; color:gold; border-color:gold;">ОК</button><button onclick="closeModal('promoModal')" style="margin-top:10px; border:none;">Закрыть</button></div></div>
+<div id="settingsModal" class="modal"><div class="modal-content"><h3 id="userName">Настройки</h3><button onclick="resetData()" style="color:red;">Сброс</button><button onclick="closeModal('settingsModal')" style="margin-top:10px; border:none;">Назад</button></div></div>
+<div id="createCoinModal" class="modal"><div class="modal-content"><h2>ICO</h2><input type="text" id="newCoinName" class="trade-input" placeholder="TICKER" maxlength="5"><button class="create-btn" onclick="createNewToken()">ЗАПУСТИТЬ (2M)</button><button onclick="closeModal('createCoinModal')" style="margin-top:10px; border:none;">Отмена</button></div></div>
 
 <script>
     const tg = window.Telegram.WebApp;
     tg.expand();
 
-    // Загрузка данных ТГ
-    const user = tg.initDataUnsafe?.user;
-    if (user) {
-        if (user.photo_url) document.getElementById('avatar').style.backgroundImage = `url(${user.photo_url})`;
-        document.getElementById('userName').innerText = user.first_name || "Игрок";
-        document.getElementById('userId').innerText = user.id || "---";
-    }
-
+    // Состояние игры
     let coins = parseFloat(localStorage.getItem('coins')) || 0;
     let boost = parseInt(localStorage.getItem('boost')) || 1;
     let autoIncome = parseInt(localStorage.getItem('autoIncome')) || 0;
     let currentSkin = localStorage.getItem('currentSkin') || 'gold';
     let myBalances = JSON.parse(localStorage.getItem('balances')) || { "MEC": 0 };
     let allTokens = JSON.parse(localStorage.getItem('allTokens')) || {
-        "MEC": { name: "MEC", price: 1.0, verified: true, history: [1.0, 1.1, 0.9, 1.0] }
+        "MEC": { name: "MEC", price: 1.0, verified: true, history: [1.0, 1.1, 0.9, 1.0, 1.2] }
     };
     let currentCoin = "MEC";
+    let promoDatabase = JSON.parse(localStorage.getItem('promoDatabase')) || {};
 
-    // Авто-майнинг (работает раз в секунду)
-    setInterval(() => {
-        if (autoIncome > 0) {
-            coins += autoIncome;
-            updateUI();
-            saveData();
-        }
-    }, 1000);
-
+    // --- ФУНКЦИИ МАГАЗИНА ---
     function buyItem(type, value, price) {
         if (coins >= price) {
             coins -= price;
@@ -197,32 +190,88 @@
             if (type === 'auto') autoIncome += value;
             if (type === 'skin') { currentSkin = value; applySkin(); }
             saveData(); updateUI();
-            alert("Успешно куплено!");
-        } else alert("Недостаточно монет!");
+            alert("Куплено!");
+        } else alert("Не хватает монет!");
     }
 
+    function applySkin() {
+        const b = document.getElementById('mainButton');
+        b.className = 'coin-button' + (currentSkin !== 'gold' ? ' skin-' + currentSkin : '');
+    }
+
+    // --- ФУНКЦИИ БИРЖИ ---
     function tradeAction(type) {
         const amount = parseInt(document.getElementById('tradeAmount').value) || 0;
         let token = allTokens[currentCoin];
         if (type === 'buy') {
-            let cost = (token.price * 500) * amount;
+            let cost = (token.price * 1000) * amount; // Цена в монетах за 1 токен
             if (coins >= cost) {
                 coins -= cost;
                 myBalances[currentCoin] = (myBalances[currentCoin] || 0) + amount;
-                token.price += (0.01 * amount);
+                token.price += (0.02 * amount);
             } else return alert("Мало монет!");
         } else {
             if ((myBalances[currentCoin] || 0) >= amount) {
                 myBalances[currentCoin] -= amount;
-                coins += (token.price * 450) * amount;
-                token.price = Math.max(0.1, token.price - (0.01 * amount));
+                coins += (token.price * 900) * amount;
+                token.price = Math.max(0.1, token.price - (0.02 * amount));
             } else return alert("Нет токенов!");
         }
         token.history.push(token.price);
-        if (token.history.length > 20) token.history.shift();
+        if (token.history.length > 15) token.history.shift();
         saveData(); updateUI();
     }
 
+    function renderChart(history) {
+        const c = document.getElementById('canvas');
+        const ctx = c.getContext('2d');
+        ctx.clearRect(0,0,c.width,c.height);
+        ctx.strokeStyle = '#00ff00';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        let step = c.width / (history.length - 1);
+        let min = Math.min(...history) * 0.8;
+        let max = Math.max(...history) * 1.2;
+        history.forEach((p, i) => {
+            let x = i * step;
+            let y = c.height - ((p - min) / (max - min) * c.height);
+            if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+        });
+        ctx.stroke();
+    }
+
+    // --- КАЗИНО ---
+    function playSlots() {
+        let bet = parseInt(document.getElementById('casinoBet').value);
+        if(coins < bet) return alert("Мало монет!");
+        coins -= bet;
+        const icons = ['💎', '🍋', '🍒', '7️⃣'];
+        let r1 = icons[Math.floor(Math.random()*4)], r2 = icons[Math.floor(Math.random()*4)], r3 = icons[Math.floor(Math.random()*4)];
+        document.getElementById('slotDisplay').innerText = `${r1}|${r2}|${r3}`;
+        if(r1===r2 && r2===r3) { coins += bet*10; alert("X10!"); }
+        updateUI(); saveData();
+    }
+
+    function playDice() {
+        let bet = parseInt(document.getElementById('casinoBet').value);
+        if(coins < bet) return;
+        coins -= bet;
+        let u = Math.floor(Math.random()*6)+1, b = Math.floor(Math.random()*6)+1;
+        document.getElementById('slotDisplay').innerText = `🎲 ${u} : ${b}`;
+        if(u > b) coins += bet*2;
+        updateUI(); saveData();
+    }
+
+    function playFlip() {
+        let bet = parseInt(document.getElementById('casinoBet').value);
+        if(coins < bet) return;
+        coins -= bet;
+        if(Math.random() > 0.5) { coins += Math.floor(bet*1.9); document.getElementById('slotDisplay').innerText = "WIN"; }
+        else document.getElementById('slotDisplay').innerText = "LOSE";
+        updateUI(); saveData();
+    }
+
+    // --- СИСТЕМА ---
     function updateUI() {
         document.getElementById('score').innerText = Math.floor(coins).toLocaleString() + " 🪙";
         document.getElementById('multInfo').innerText = `Клик: x${boost} | Авто: ${autoIncome}/сек`;
@@ -234,44 +283,35 @@
         renderChart(t.history);
     }
 
-    function renderChart(history) {
-        const c = document.getElementById('canvas');
-        const ctx = c.getContext('2d');
-        ctx.clearRect(0,0,c.width,c.height);
-        ctx.strokeStyle = history[history.length-1] >= history[history.length-2] ? '#00ff00' : '#ff0000';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        let step = c.width / (history.length - 1);
-        let min = Math.min(...history) * 0.9;
-        let max = Math.max(...history) * 1.1;
-        history.forEach((p, i) => {
-            let x = i * step;
-            let y = c.height - ((p - min) / (max - min) * c.height);
-            if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
-        });
-        ctx.stroke();
-    }
-
-    function createNewToken() {
-        const name = document.getElementById('newCoinName').value.trim().toUpperCase();
-        if (name.length < 3 || coins < 2000000) return alert("Ошибка условий!");
-        coins -= 2000000;
-        allTokens[name] = { name: name, price: 1.0, verified: false, history: [1.0, 1.0] };
-        myBalances[name] = 0;
-        saveData(); updateSelectMenu(); closeModal('createCoinModal');
-    }
-
-    function openExchange() { currentCoin = "MEC"; updateSelectMenu(); openModal('chartModal'); updateUI(); }
+    function openExchange() { updateSelectMenu(); openModal('chartModal'); updateUI(); }
     function updateSelectMenu() {
         const s = document.getElementById('coinSelect'); s.innerHTML = "";
         for (let id in allTokens) { let o = document.createElement('option'); o.value = id; o.innerText = allTokens[id].name; s.appendChild(o); }
-        s.value = currentCoin;
     }
     function changeCoin(v) { currentCoin = v; updateUI(); }
 
-    function applySkin() {
-        const b = document.getElementById('mainButton');
-        b.className = 'coin-button' + (currentSkin !== 'gold' ? ' skin-' + currentSkin : '');
+    function createNewToken() {
+        const name = document.getElementById('newCoinName').value.trim().toUpperCase();
+        if (name.length < 3 || coins < 2000000) return alert("Нужно 2M монет!");
+        coins -= 2000000;
+        allTokens[name] = { name: name, price: 1.0, verified: false, history: [1.0, 1.0] };
+        myBalances[name] = 0;
+        saveData(); closeModal('createCoinModal');
+    }
+
+    function adminSetSelf() { coins = parseFloat(document.getElementById('adminCoinInput').value) || 0; updateUI(); saveData(); }
+    function adminCreatePromo() {
+        const n = document.getElementById('newPromoName').value;
+        const v = parseInt(document.getElementById('newPromoValue').value);
+        if(n && v) { promoDatabase[n] = v; localStorage.setItem('promoDatabase', JSON.stringify(promoDatabase)); renderAdminPromos(); }
+    }
+    function renderAdminPromos() {
+        const d = document.getElementById('activePromos'); d.innerHTML = "";
+        for (let k in promoDatabase) d.innerHTML += `${k}:${promoDatabase[k]} `;
+    }
+    function activatePromo() {
+        const i = document.getElementById('userPromoInput').value;
+        if(promoDatabase[i]) { coins += promoDatabase[i]; delete promoDatabase[i]; localStorage.setItem('promoDatabase', JSON.stringify(promoDatabase)); updateUI(); alert("OK!"); closeModal('promoModal'); }
     }
 
     function saveData() {
@@ -283,19 +323,13 @@
         localStorage.setItem('allTokens', JSON.stringify(allTokens));
     }
 
-    function resetData() { if(confirm("Удалить всё?")) { localStorage.clear(); location.reload(); } }
-
-    // Админ функции
-    window.onkeydown = (e) => { if(e.key === '`' || e.key === 'ё') document.getElementById('adminPanel').style.display = 'block'; };
-    function adminAddCoins() {
-        coins = parseFloat(document.getElementById('adminCoinInput').value) || 0;
-        saveData(); updateUI();
-    }
-
-    document.getElementById('mainButton').onclick = () => { coins += boost; updateUI(); saveData(); };
     function openModal(id) { document.getElementById(id).style.display = 'block'; }
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-    function spinRoulette() { /* логика рулетки как была ранее */ }
+    function resetData() { if(confirm("Сброс?")) { localStorage.clear(); location.reload(); } }
+
+    setInterval(() => { if(autoIncome > 0) { coins += autoIncome; updateUI(); saveData(); } }, 1000);
+    document.getElementById('mainButton').onclick = () => { coins += boost; updateUI(); saveData(); };
+    window.onkeydown = (e) => { if(e.key === '`' || e.key === 'ё') { document.getElementById('adminPanel').style.display='block'; renderAdminPromos(); }};
 
     applySkin();
     updateUI();
